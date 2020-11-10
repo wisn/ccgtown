@@ -1,0 +1,49 @@
+{% extends "default.html" %}
+
+{% block body %}
+  {% include "projects/navbar.html" %}
+
+  <main class="entire-screen">
+    <div class="uk-container">
+      <div class="uk-card uk-card-default">
+        <div class="uk-card-header">
+          <div class="uk-flex uk-flex-between uk-flex-middle" uk-grid>
+            <div>
+              <h2>Projects</h2>
+            </div>
+            <div class="">
+              <ul class="uk-iconnav">
+                <li>
+                  <a href="#" uk-icon="icon: plus; ratio: 1.25" uk-tooltip="Create new project."></a>
+                </li>
+                <li>
+                  <a href="#" uk-icon="icon: cloud-upload; ratio: 1.25" uk-tooltip="Import CCGbank."></a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="uk-card-body">
+          <div class="uk-flex uk-flex-center uk-flex-middle" style="min-height: calc(100vh - 420px);">
+            <div>
+              <span uk-icon="icon: folder; ratio: 3"></span>
+            </div>
+            <div class="uk-padding-small"></div>
+            <div>
+              <p class="uk-margin-remove">
+                There is no project here.<br>
+                You may add a new project by clicking <span uk-icon="icon: plus"></span> icon.<br>
+                You may also import CCGbank by clicking <span uk-icon="icon: cloud-upload"></span> icon.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="uk-card-footer">
+          t
+        </div>
+      </div>
+    </div>
+  </main>
+
+  {% include 'footer.html' %}
+{% endblock body %}

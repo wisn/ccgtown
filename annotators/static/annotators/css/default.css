@@ -1,0 +1,116 @@
+.bg-0,
+.hvbg-0:hover,
+.hvbg-0:focus {
+  background-color: #3e045e;
+}
+
+.bg-1,
+.hvbg-1:hover,
+.hvbg-1:focus {
+  background-color: #52057b;
+}
+
+.bg-2,
+.hvbg-2:hover,
+.hvbg-2:focus {
+  background-color: #892cdc;
+}
+
+.bg-3,
+.hvbg-3:hover,
+.hvbg-3:focus {
+  background-color: #bc6ff1;
+}
+
+.bg-4,
+.hvbg-4:hover,
+.hvbg-4:focus {
+  background-color: #ffffff;
+}
+
+.fg-0,
+.hvfg-0:hover,
+.hvfg-0:focus {
+  color: #3e045e;
+}
+
+.fg-1,
+.hvfg-1:hover,
+.hvfg-1:focus {
+  color: #52057b;
+}
+
+.fg-2,
+.hvfg-2:hover,
+.hvfg-2:focus {
+  color: #892cdc;
+}
+
+.fg-3,
+.hvfg-3:hover,
+.hvfg-3:focus {
+  color: #bc6ff1;
+}
+
+.fg-4,
+.hvfg-4:hover,
+.hvfg-4:focus {
+  color: #ffffff;
+}
+
+body {
+  background-color: #efefef;
+  cursor: default;
+}
+
+.topnav a:hover {
+  color: #ffffff;
+}
+
+.topnav .uk-navbar-right {
+  padding-right: 1em;
+}
+
+.topnav-icons > li > a {
+  min-height: 0 !important;
+}
+
+.topnav-icons > li > a,
+.topnav-icons > li > a:hover,
+.topnav-icons > li > a:focus {
+  color: #ffffff
+}
+
+.topnav-icons > li > a > span {
+  border: 1px solid #ffffff;
+}
+
+.topnav .divider {
+  align-items: center;
+  background-color: #ffffff;
+  display: flex;
+  height: 2em;
+  justify-content: center;
+  margin: 1.5em;
+  width: 1px;
+}
+
+.topnav .uk-navbar-nav > li > a {
+  color: #ffffff;
+}
+
+.topnav .uk-navbar-nav > li > a:hover,
+.topnav .uk-navbar-nav > li > a:focus,
+.topnav .uk-navbar-nav > li > a.active {
+  background-color: #3e045e;
+  color: #ffffff;
+}
+
+main {
+  margin: 0 auto;
+  padding: 2em 0;
+}
+
+.entire-screen {
+  min-height: calc(100vh - 144px);
+}
