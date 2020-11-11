@@ -14,29 +14,127 @@
             <div class="">
               <ul class="uk-iconnav">
                 <li>
-                  <a href="#" uk-icon="icon: plus; ratio: 1.25" uk-tooltip="Create new project."></a>
+                  <a
+                    uk-icon="icon: plus; ratio: 1.25"
+                    uk-tooltip="Create new project."
+                    uk-toggle="target: #add-project-modal"
+                  ></a>
                 </li>
                 <li>
-                  <a href="#" uk-icon="icon: cloud-upload; ratio: 1.25" uk-tooltip="Import CCGbank."></a>
+                  <a
+                    href="javascript:;"
+                    uk-icon="icon: cloud-upload; ratio: 1.25"
+                    uk-tooltip="Import CCGbank."
+                  ></a>
                 </li>
               </ul>
             </div>
           </div>
         </div>
-        <div class="uk-card-body">
-          <div class="uk-flex uk-flex-center uk-flex-middle" style="min-height: calc(100vh - 420px);">
-            <div>
-              <span uk-icon="icon: folder; ratio: 3"></span>
+        <div class="uk-card-body uk-padding-small" style="height: calc(100vh - 320px)">
+          {% if projects|length == 0 %}
+            <div
+              class="uk-flex uk-flex-center uk-flex-middle"
+              style="height: calc(100vh - 320px)"
+            >
+              <div>
+                <span uk-icon="icon: folder; ratio: 3"></span>
+              </div>
+              <div class="uk-padding-small"></div>
+              <div>
+                <p class="uk-margin-remove">
+                  There is no project here.<br>
+                  You may add a new project by clicking
+                  <a uk-icon="icon: plus" uk-toggle="#add-project-modal"></a>
+                  icon.<br>
+                  You may also import CCGbank by clicking
+                  <span uk-icon="icon: cloud-upload"></span> icon.
+                </p>
+              </div>
             </div>
-            <div class="uk-padding-small"></div>
-            <div>
-              <p class="uk-margin-remove">
-                There is no project here.<br>
-                You may add a new project by clicking <span uk-icon="icon: plus"></span> icon.<br>
-                You may also import CCGbank by clicking <span uk-icon="icon: cloud-upload"></span> icon.
-              </p>
+          {% else %}
+            <div class="uk-overflow-auto">
+              <table
+                class="uk-table uk-table-hover uk-table-middle uk-table-divider"
+              >
+                <thead>
+                  <tr>
+                    <th class="uk-table-shrink"></th>
+                    <th class="uk-table-expand">Project Name</th>
+                    <th class="uk-table-shrink">
+                      <div align="center">Status</div>
+                    </th>
+                    <th class="uk-width-1-6">
+                      <div align="center">Created</div>
+                    </th>
+                    <th class="uk-width-1-6">
+                      <div align="center">Last Modified</div>
+                    </th>
+                    <th class="uk-width-small">
+                      <div align="center">Actions</div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for project in projects %}
+                    <tr>
+                      <td><input class="uk-checkbox" type="checkbox"></td>
+                      <td class="uk-table-link">
+                        <a href="/projects/{{ project.uuid }}/">
+                          {{ project.name }}
+                        </a>
+                      </td>
+                      <td>
+                        <div align="center" class="uk-text-small">
+                          {% if project.status == 0 %}
+                            <span class="uk-label">Just Created</span>
+                          {% elif project.status == 1 %}
+                            <span class="uk-label uk-label-warning">
+                              In Progress
+                            </span>
+                          {% elif project.status == 2 %}
+                            <span class="uk-label uk-label-success">
+                              Finished
+                            </span>
+                          {% elif project.status == 3 %}
+                            <span class="uk-label uk-label-danger">
+                              Dropped
+                            </span>
+                          {% else %}
+                            <span class="uk-label">Unknown</span>
+                          {% endif %}
+                        </div>
+                      </td>
+                      <td>
+                        <div align="center" class="uk-text-small">
+                          {{ project.created_at }}
+                        </div>
+                      </td>
+                      <td>
+                        <div align="center" class="uk-text-small">
+                          {{ project.updated_at }}
+                        </div>
+                      </td>
+                      <td>
+                        <div align="center">
+                          <a
+                            href="/{{ project.uuid }}/"
+                            uk-icon="icon: file-edit"
+                            uk-tooltip="Edit this project."
+                          ></a>
+                          <a
+                            href="/{{ project.uuid }}/"
+                            uk-icon="icon: trash"
+                            uk-tooltip="Delete this project."
+                          ></a>
+                        </div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
             </div>
-          </div>
+          {% endif %}
         </div>
         <div class="uk-card-footer">
           t
@@ -44,6 +142,42 @@
       </div>
     </div>
   </main>
+
+  <div id="add-project-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-margin-auto-vertical uk-width-1-3">
+      <button class="uk-modal-close-default" type="button" uk-close></button>
+      <div class="uk-modal-header">
+        <h3>Create New Project</h3>
+      </div>
+      <div class="uk-modal-body uk-padding-small">
+        <form method="POST" action="/projects/">
+          {% csrf_token %}
+          <div>
+            <input
+              name="project_name"
+              class="uk-input uk-width-1-1"
+              type="text"
+              placeholder="Project Name"
+            >
+          </div>
+          <p class="uk-text-right uk-margin-remove-bottom">
+            <button
+              class="uk-button uk-button-default uk-modal-close"
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              class="uk-button uk-button-primary"
+              type="button"
+            >
+              Create Project
+            </button>
+          </p>
+        </form>
+      </div>
+    </div>
+</div>
 
   {% include 'footer.html' %}
 {% endblock body %}

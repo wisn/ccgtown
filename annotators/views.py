@@ -1,4 +1,3 @@
-from django.core import serializers
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
@@ -6,29 +5,28 @@ from django.urls import reverse
 
 import bcrypt
 
-from .forms import LoginForm, RegisterForm
-from .models import Account
-from .utils import capitalize_form
+from .models import Account, Project
+import annotators.forms as forms
+import annotators.utils as utils
 
 def register(request):
     if request.session.get('user', None) != None:
         return HttpResponseRedirect(reverse('projects'))
 
-    context = {
-        'page': {
-            'title': 'Register',
-        },
-    }
-
     if request.method == 'GET':
+        context = {
+            'page': {
+                'title': 'Register',
+            },
+        }
         return render(request, 'register.html', context)
 
     if request.method == 'POST':
-        form = RegisterForm(request.POST)
+        form = forms.RegisterForm(request.POST)
         if not form.is_valid():
             for field, errors in form.errors.items():
                 for error in errors:
-                    msg = '%s: %s' % (capitalize_form(field), error)
+                    msg = '%s: %s' % (utils.capitalize_form(field), error)
                     messages.add_message(request, messages.ERROR, msg)
             return HttpResponseRedirect(reverse('register'))
 
@@ -70,21 +68,20 @@ def login(request):
     if request.session.get('user', None) != None:
         return HttpResponseRedirect(reverse('projects'))
 
-    context = {
-        'page': {
-            'title': 'Login',
-        },
-    }
-
     if request.method == 'GET':
+        context = {
+            'page': {
+                'title': 'Login',
+            },
+        }
         return render(request, 'login.html', context)
 
     if request.method == 'POST':
-        form = LoginForm(request.POST)
+        form = forms.LoginForm(request.POST)
         if not form.is_valid():
             for field, errors in form.errors.items():
                 for error in errors:
-                    msg = '%s: %s' % (capitalize_form(field), error)
+                    msg = '%s: %s' % (utils.capitalize_form(field), error)
                     messages.add_message(request, messages.ERROR, msg)
             return HttpResponseRedirect(reverse('login'))
 
@@ -106,7 +103,10 @@ def login(request):
         msg = 'Welcome to CCGtown! Here is your project list.'
         messages.add_message(request, messages.INFO, msg)
 
-        request.session['user'] = serializers.serialize('json', [user])[0]
+        fields = ('id', 'uuid', 'email', 'is_verified')
+        json = utils.serialize_json([user], fields=fields)
+        request.session['user'] = json[0]
+
         return HttpResponseRedirect(reverse('projects'))
 
 
@@ -122,15 +122,45 @@ def logout(request):
 
 
 def projects(request):
-    if request.session.get('user', None) == None:
+    user = request.session.get('user', None)
+    if not user:
         msg = 'Please login before accessing Projects page.'
         messages.add_message(request, messages.INFO, msg)
         return HttpResponseRedirect(reverse('login'))
 
-    context = {
-        'page': {
-            'title': 'Projects',
-            'description': 'List of your CCGtown projects.',
-        },
-    }
-    return render(request, 'projects/index.html', context)
+    if request.method == 'GET':
+        # pylint: disable=no-member
+        projects = Project.objects.filter(author=user['id'])
+        context = {
+            'page': {
+                'title': 'Projects',
+                'description': 'List of your CCGtown projects.',
+            },
+            'projects': projects,
+            'user': user,
+        }
+        return render(request, 'projects/index.html', context)
+
+    if request.method == 'POST':
+        form = forms.CreateProjectForm(request.POST)
+        if not form.is_valid():
+            for field, errors in form.errors.items():
+                for error in errors:
+                    msg = '%s: %s' % (utils.capitalize_form(field), error)
+                    messages.add_message(request, messages.ERROR, msg)
+            return HttpResponseRedirect(reverse('projects'))
+
+        prj = Project()
+        prj.name = request.POST.get('project_name')
+        # pylint: disable=no-member
+        prj.author = Account.objects.get(id=user['id'])
+
+        try:
+            prj.save()
+            msg = 'Project created.'
+            messages.add_message(request, messages.INFO, msg)
+            return HttpResponseRedirect(reverse('projects'))
+        except:
+            msg = 'Project creation failure. Internal server error'
+            messages.add_message(request, messages.ERROR, msg)
+            return HttpResponseRedirect(reverse('projects'))
