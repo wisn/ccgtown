@@ -164,3 +164,37 @@ def projects(request):
             msg = 'Project creation failure. Internal server error'
             messages.add_message(request, messages.ERROR, msg)
             return HttpResponseRedirect(reverse('projects'))
+
+
+def delete_project(request, project_uuid):
+    user = request.session.get('user', None)
+    if not user:
+        msg = 'Please login before accessing Projects page.'
+        messages.add_message(request, messages.INFO, msg)
+        return HttpResponseRedirect(reverse('login'))
+
+    if request.method == 'POST':
+        # pylint: disable=no-member
+        prj = Project.objects.filter(uuid=project_uuid)
+        if len(prj) == 0:
+            msg = 'Project does not exists.'
+            messages.add_message(request, messages.ERROR, msg)
+            return HttpResponseRedirect(reverse('projects'))
+
+        # pylint: disable=no-member
+        acc = Account.objects.get(uuid=user['uuid'])
+        prj = prj[0]
+        if acc.uuid != prj.author.uuid:
+            msg = 'You are not allowed to delete the project.'
+            messages.add_message(request, messages.ERROR, msg)
+            return HttpResponseRedirect(reverse('projects'))
+
+        try:
+            prj.delete()
+            msg = 'Project deleted.'
+            messages.add_message(request, messages.INFO, msg)
+            return HttpResponseRedirect(reverse('projects'))
+        except:
+            msg = 'Can not delete project. Internal server error.'
+            messages.add_message(request, messages.ERROR, msg)
+            return HttpResponseRedirect(reverse('projects'))

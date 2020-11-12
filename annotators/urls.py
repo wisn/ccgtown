@@ -8,4 +8,5 @@ urlpatterns = [
     path('logout/', views.logout, name='logout'),
 
     path('projects/', views.projects, name='projects'),
+    path('projects/<uuid:project_uuid>/delete/', views.delete_project),
 ]

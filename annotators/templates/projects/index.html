@@ -31,11 +31,11 @@
             </div>
           </div>
         </div>
-        <div class="uk-card-body uk-padding-small" style="height: calc(100vh - 320px)">
+        <div class="uk-card-body uk-padding-small" style="height: calc(100vh - 260px)">
           {% if projects|length == 0 %}
             <div
               class="uk-flex uk-flex-center uk-flex-middle"
-              style="height: calc(100vh - 320px)"
+              style="height: calc(100vh - 260px)"
             >
               <div>
                 <span uk-icon="icon: folder; ratio: 3"></span>
@@ -53,13 +53,13 @@
               </div>
             </div>
           {% else %}
-            <div class="uk-overflow-auto">
+            <div class="uk-overflow-auto project-list">
               <table
                 class="uk-table uk-table-hover uk-table-middle uk-table-divider"
               >
                 <thead>
                   <tr>
-                    <th class="uk-table-shrink"></th>
+                    <!-- <th class="uk-table-shrink"></th> -->
                     <th class="uk-table-expand">Project Name</th>
                     <th class="uk-table-shrink">
                       <div align="center">Status</div>
@@ -78,7 +78,7 @@
                 <tbody>
                   {% for project in projects %}
                     <tr>
-                      <td><input class="uk-checkbox" type="checkbox"></td>
+                      <!-- <td><input class="uk-checkbox" type="checkbox"></td> -->
                       <td class="uk-table-link">
                         <a href="/projects/{{ project.uuid }}/">
                           {{ project.name }}
@@ -118,14 +118,15 @@
                       <td>
                         <div align="center">
                           <a
-                            href="/{{ project.uuid }}/"
+                            href="/projects/{{ project.uuid }}/"
                             uk-icon="icon: file-edit"
                             uk-tooltip="Edit this project."
                           ></a>
                           <a
-                            href="/{{ project.uuid }}/"
                             uk-icon="icon: trash"
                             uk-tooltip="Delete this project."
+                            uk-toggle="#delete-project-modal"
+                            onclick="updateDelPrjForm('{{ project.uuid }}', '{{ project.name }}')"
                           ></a>
                         </div>
                       </td>
@@ -135,9 +136,6 @@
               </table>
             </div>
           {% endif %}
-        </div>
-        <div class="uk-card-footer">
-          t
         </div>
       </div>
     </div>
@@ -169,7 +167,7 @@
             </button>
             <button
               class="uk-button uk-button-primary"
-              type="button"
+              type="submit"
             >
               Create Project
             </button>
@@ -177,7 +175,48 @@
         </form>
       </div>
     </div>
-</div>
+  </div>
+
+  <div id="delete-project-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-margin-auto-vertical uk-width-1-3">
+      <button class="uk-modal-close-default" type="button" uk-close></button>
+      <div class="uk-modal-header">
+        <h3>Delete Project</h3>
+      </div>
+      <div class="uk-modal-body uk-padding-small">
+        <form method="POST" action="/projects/">
+          {% csrf_token %}
+          <div>
+            Are you sure want to delete
+            "<strong class="project-name"></strong>"?
+          </div>
+          <p class="uk-text-right uk-margin-remove-bottom">
+            <button
+              class="uk-button uk-button-default uk-modal-close"
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              class="uk-button uk-button-danger"
+              type="submit"
+            >
+              Delete Project
+            </button>
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    function updateDelPrjForm(pid, name) {
+      const form = document.querySelector('#delete-project-modal form');
+      form.action = `/projects/${pid}/delete/`;
+      const nameElm = document.querySelector('#delete-project-modal .project-name');
+      nameElm.innerHTML = name;
+    }
+  </script>
 
   {% include 'footer.html' %}
 {% endblock body %}

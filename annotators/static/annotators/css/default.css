@@ -144,3 +144,13 @@ main {
 .entire-screen {
   min-height: calc(100vh - 144px);
 }
+
+.project-list a {
+  color: #222222;
+}
+
+.project-list a:hover,
+.project-list a:focus {
+  color: #222222;
+  text-decoration: none;
+}
