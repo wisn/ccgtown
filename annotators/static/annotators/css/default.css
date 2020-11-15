@@ -154,3 +154,12 @@ main {
   color: #222222;
   text-decoration: none;
 }
+
+.editor-header a.icon {
+  border: 1px solid #222222;
+  color: #222222;
+}
+
+.editor-header a.icon:hover {
+  background-color: #efefef;
+}

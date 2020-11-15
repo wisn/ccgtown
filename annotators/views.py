@@ -198,3 +198,29 @@ def delete_project(request, project_uuid):
             msg = 'Can not delete project. Internal server error.'
             messages.add_message(request, messages.ERROR, msg)
             return HttpResponseRedirect(reverse('projects'))
+
+
+def editor(request, project_uuid):
+    user = request.session.get('user', None)
+    if not user:
+        msg = 'Please login before accessing Editor page.'
+        messages.add_message(request, messages.INFO, msg)
+        return HttpResponseRedirect(reverse('login'))
+
+    prj = Project.objects.filter(uuid=project_uuid)
+    if len(prj) == 0:
+        msg = 'Project not found. Might be deleted.'
+        messages.add_message(request, messages.ERROR, msg)
+        return HttpResponseRedirect(reverse('projects'))
+
+    prj = prj[0]
+    if request.method == 'GET':
+        context = {
+            'page': {
+                'title': prj.name,
+            },
+            'project': prj,
+            'user': user,
+        }
+        return render(request, 'projects/editor.html', context)
+

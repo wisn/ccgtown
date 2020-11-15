@@ -1,0 +1,209 @@
+{% extends "default.html" %}
+
+{% block body %}
+  {% include "projects/navbar.html" %}
+
+  <main class="entire-screen uk-padding-remove-top">
+    <div class="uk-section uk-section-default uk-section-xsmall editor-header">
+      <div style="padding: 0 15px">
+        <div class="uk-flex uk-flex-between uk-flex-middle">
+          <div class="uk-flex uk-flex-left uk-flex-middle">
+            <a
+              href="/projects/"
+              uk-icon="icon: arrow-left; ratio: 1.25"
+              class="uk-icon-button"
+              uk-tooltip="Back to project list."
+            ></a>
+            <div style="padding: 8px"></div>
+            <input
+              type="text"
+              class="uk-input uk-form-blank uk-width-auto"
+              value="{{ project.name }}"
+            >
+            <div style="padding: 8px"></div>
+            &mdash;
+            <div style="padding: 8px"></div>
+            <span style="color: #ababab">
+              saved recently
+            </span>
+          </div>
+          <div class="uk-flex uk-flex-left uk-flex-middle">
+            <a
+              class="uk-icon-button"
+              uk-icon="icon: plus"
+              uk-tooltip="Add new sentence."
+              uk-toggle="#add-sentence-modal"
+            ></a>
+            <a
+              class="uk-icon-button"
+              uk-icon="icon: settings"
+              uk-tooltip="Open project properties."
+            ></a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uk-padding-small"></div>
+
+    <div style="padding: 0 15px">
+      <div class="uk-flex uk-flex-between">
+        <div class="uk-width-expand">
+          <div class="uk-card uk-card-default uk-card-body uk-padding-remove">
+            <div
+              class="uk-flex uk-flex-center uk-flex-middle"
+              style="min-height: calc(100vh - 280px)"
+            >
+              <div>
+                <span uk-icon="icon: folder; ratio: 3"></span>
+              </div>
+              <div class="uk-padding-small"></div>
+              <div>
+                <p class="uk-margin-remove">
+                  There is no sentence here.<br>
+                  You may add a new project by clicking
+                  <a uk-icon="icon: plus" uk-toggle="#add-sentence-modal"></a>
+                  icon.<br>
+                </p>
+              </div>
+            </div>
+            <button
+              class="uk-button uk-button-default uk-width-1-1"
+              style="border: 0; border-top: 1px solid #222222"
+              uk-toggle="#add-sentence-modal"
+            >
+              <span uk-icon="icon: plus"></span>
+              Add Sentence
+            </button>
+          </div>
+        </div>
+        <div class="uk-padding-small"></div>
+        <div class="uk-width-1-4">
+          <div
+            class="uk-card uk-card-small uk-card-default uk-card-body uk-margin-small-bottom"
+          >
+            <div class="uk-flex uk-flex-between uk-flex-middle">
+              <h4 class="uk-margin-remove">Project Detail</h4>
+              <a uk-icon="icon: refresh" uk-tooltip="Update project detail."></a>
+            </div>
+            <div class="uk-margin-small">
+              <label class="uk-form-label" for="project-name">
+                Project Name
+              </label>
+              <div class="uk-form-controls">
+                <input
+                  type="text"
+                  id="project-name"
+                  class="uk-input"
+                  value="{{ project.name }}"
+                  placeholder="(insert project name)"
+                >
+              </div>
+            </div>
+            <div class="uk-margin-small">
+              <label class="uk-form-label" for="project-name">
+                Project Status
+              </label>
+              <div class="uk-form-controls">
+                <select class="uk-select" id="project-status">
+                  <option
+                    value="0"
+                    {% if project.status == 0 %} selected {% endif %}
+                  >
+                    Just Created
+                  </option>
+                  <option
+                    value="1"
+                    {% if project.status == 1 %} selected {% endif %}
+                  >
+                    In Progress
+                  </option>
+                  <option
+                    value="2"
+                    {% if project.status == 2 %} selected {% endif %}
+                  >
+                    Finished
+                  </option>
+                  <option
+                    value="3"
+                    {% if project.status == 3 %} selected {% endif %}
+                  >
+                    Dropped
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div
+            class="uk-card uk-card-small uk-card-default uk-card-body uk-margin-small-bottom"
+          >
+            <div class="uk-flex uk-flex-between uk-flex-middle">
+              <h4 class="uk-margin-remove">Automation Rules</h4>
+              <a uk-icon="icon: refresh" uk-tooltip="Update CCG automation rules."></a>
+            </div>
+            <div class="uk-margin-small">
+              <textarea
+                class="uk-textarea"
+                placeholder="(insert CCG lexicon rules)"
+                style="min-height: 100px"
+              >:- S, N, NP, VP</textarea>
+            </div>
+          </div>
+          <div
+            class="uk-card uk-card-small uk-card-default uk-card-body uk-margin-small-bottom"
+          >
+            <div class="uk-flex uk-flex-between uk-flex-middle">
+              <h4 class="uk-margin-remove">CCG Lexicons</h4>
+            </div>
+            <div class="uk-margin-small" style="min-height: 80px">
+              <div
+                class="uk-flex uk-flex-center uk-flex-middle"
+                style="min-height: 80px"
+              >
+                <div class="uk-padding-medium">
+                  There is no CCG lexicons recorded.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="add-sentence-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-margin-auto-vertical uk-width-1-3">
+      <button class="uk-modal-close-default" type="button" uk-close></button>
+      <div class="uk-modal-header">
+        <h3>Add New Sentence</h3>
+      </div>
+      <div class="uk-modal-body uk-padding-small">
+        <input
+          name="sentence"
+          class="uk-input uk-width-1-1"
+          type="text"
+          placeholder="This is an example sentence."
+        >
+        <p class="uk-text-right uk-margin-remove-bottom">
+          <button
+            class="uk-button uk-button-default uk-modal-close"
+            type="button"
+          >
+            Cancel
+          </button>
+          <button
+            class="uk-button uk-button-primary"
+            type="button"
+          >
+            Add Sentence
+          </button>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+  </script>
+
+  {% include 'footer.html' %}
+{% endblock body %}
