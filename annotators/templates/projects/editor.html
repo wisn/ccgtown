@@ -26,7 +26,12 @@
             <div style="padding: 8px"></div>
             <span style="color: #ababab">
               last updated at
-              <strong>{{ project.updated_at }}</strong>
+              <strong>
+                {% load tz %}
+                {{ project.updated_at|localtime }}
+                {% get_current_timezone as T_Z %}
+                {{ T_Z }}
+              </strong>
             </span>
           </div>
           <div class="uk-flex uk-flex-left uk-flex-middle">
@@ -437,7 +442,7 @@
       const newCat = input.value === '' ? null : input.value;
       let oldCat = null;
       if (changes.sentences[uuid]) {
-        oldCat = changes.sentences[uuid][index];
+        oldCat = changes.sentences[uuid][index] || sentences[uuid].categories[index];
       } else {
         oldCat = sentences[uuid].categories[index];
       }

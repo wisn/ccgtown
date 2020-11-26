@@ -1,9 +1,9 @@
-from datetime import datetime
 from django.contrib import messages
 from django.core import serializers
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django.utils import timezone
 
 import bcrypt
 import json
@@ -275,7 +275,7 @@ def new_sentences(request, project_uuid):
                 snt.derivations = []
                 snt.save()
                 count += 1
-                prj.updated_at = datetime.now()
+                prj.updated_at = timezone.now()
                 prj.save()
             except:
                 pass
@@ -297,12 +297,13 @@ def add_changes(request, project_uuid):
         changes = json.loads(changes)
 
         msgs = []
+        # pylint: disable=no-member
+        project = Project.objects.get(uuid=project_uuid)
         c_prj = changes['project']
         c_snt = changes['sentences']
 
         if len(c_prj) > 0:
-            # pylint: disable=no-member
-            project = Project.objects.get(uuid=project_uuid)
+            project.updated_at = timezone.now()
             if 'name' in c_prj:
                 project.name = c_prj['name']
             if 'status' in c_prj:
@@ -330,6 +331,11 @@ def add_changes(request, project_uuid):
 
             if count > 0:
                 msgs.append('Updated %s sentence(s).' % count)
+                try:
+                    project.updated_at = timezone.now()
+                    project.save()
+                except:
+                    pass
             else:
                 msgs.append('There is no sentence updated. Internal server error')
 
