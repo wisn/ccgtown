@@ -10,4 +10,7 @@ urlpatterns = [
     path('projects/', views.projects, name='projects'),
     path('projects/<uuid:project_uuid>/', views.editor, name='editor'),
     path('projects/<uuid:project_uuid>/delete/', views.delete_project),
+
+    path('projects/<uuid:project_uuid>/sentences/', views.new_sentences),
+    path('projects/<uuid:project_uuid>/changes/', views.add_changes),
 ]

@@ -23,8 +23,21 @@ class Project(models.Model):
     name = models.CharField(max_length=50)
     status = models.IntegerField(choices=Status.choices, default=Status.JUST_CREATED)
     author = models.ForeignKey('Account', on_delete=models.CASCADE)
+    rules = models.TextField(default='')
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         db_table = 'projects'
+
+class Sentence(models.Model):
+    uuid = models.UUIDField(default=uuid4, editable=False, db_index=True)
+    project = models.ForeignKey('Project', on_delete=models.CASCADE)
+    words = models.JSONField()
+    categories = models.JSONField()
+    derivations = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    updated_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'sentences'

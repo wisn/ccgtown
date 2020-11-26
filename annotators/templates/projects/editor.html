@@ -15,30 +15,45 @@
               uk-tooltip="Back to project list."
             ></a>
             <div style="padding: 8px"></div>
-            <input
+            {{ project.name }}
+            <!-- <input
               type="text"
               class="uk-input uk-form-blank uk-width-auto"
               value="{{ project.name }}"
-            >
+            > -->
             <div style="padding: 8px"></div>
             &mdash;
             <div style="padding: 8px"></div>
             <span style="color: #ababab">
-              saved recently
+              last updated at
+              <strong>{{ project.updated_at }}</strong>
             </span>
           </div>
           <div class="uk-flex uk-flex-left uk-flex-middle">
+            <div class="changes-status"></div>
+            <div style="padding: 4px"></div>
+            <form method="POST" action="/projects/{{ project.uuid }}/changes/">
+              {% csrf_token %}
+              <textarea style="display: none" name="changes"></textarea>
+              <button
+                class="uk-button uk-button-default save-button"
+                type="submit"
+              >
+                Save
+              </button>
+            </form>
+            <!-- <div style="padding: 4px"></div>
             <a
               class="uk-icon-button"
               uk-icon="icon: plus"
               uk-tooltip="Add new sentence."
-              uk-toggle="#add-sentence-modal"
+              uk-toggle="#add-sentences-modal"
             ></a>
             <a
               class="uk-icon-button"
               uk-icon="icon: settings"
               uk-tooltip="Open project properties."
-            ></a>
+            ></a> -->
           </div>
         </div>
       </div>
@@ -49,33 +64,99 @@
     <div style="padding: 0 15px">
       <div class="uk-flex uk-flex-between">
         <div class="uk-width-expand">
-          <div class="uk-card uk-card-default uk-card-body uk-padding-remove">
-            <div
-              class="uk-flex uk-flex-center uk-flex-middle"
-              style="min-height: calc(100vh - 280px)"
-            >
-              <div>
-                <span uk-icon="icon: folder; ratio: 3"></span>
+          <div
+            class="uk-card uk-card-default uk-card-body uk-padding-remove editor-body"
+          >
+            {% if sentences|length == 0 %}
+              <div
+                class="uk-flex uk-flex-center uk-flex-middle"
+                style="min-height: calc(100vh - 280px)"
+              >
+                <div>
+                  <span uk-icon="icon: folder; ratio: 3"></span>
+                </div>
+                <div class="uk-padding-small"></div>
+                <div>
+                  <p class="uk-margin-remove">
+                    There is no sentence here.<br>
+                    You may add a new project by clicking
+                    <a uk-icon="icon: plus" uk-toggle="#add-sentences-modal"></a>
+                    icon.<br>
+                  </p>
+                </div>
               </div>
-              <div class="uk-padding-small"></div>
-              <div>
-                <p class="uk-margin-remove">
-                  There is no sentence here.<br>
-                  You may add a new project by clicking
-                  <a uk-icon="icon: plus" uk-toggle="#add-sentence-modal"></a>
-                  icon.<br>
-                </p>
-              </div>
-            </div>
-            <button
-              class="uk-button uk-button-default uk-width-1-1"
-              style="border: 0; border-top: 1px solid #222222"
-              uk-toggle="#add-sentence-modal"
-            >
-              <span uk-icon="icon: plus"></span>
-              Add Sentence
-            </button>
+            {% else %}
+              {% for sentence in sentences %}
+                <div
+                  class="uk-flex uk-flex-middle uk-flex-middle section"
+                  data-uuid="{{ sentence.uuid }}"
+                >
+                  <div class="line-number uk-padding-small uk-height-auto uk-width-auto">
+                    {{ forloop.counter }}
+                  </div>
+                  <div class="sentence uk-padding-small uk-width-expand">
+                    <div class="uk-flex uk-flex-left uk-flex-wrap">
+                      {% for snt in sentence.body %}
+                        <div class="uk-flex uk-flex-column uk-text-center">
+                          <input
+                            type="hidden"
+                            data-index="{{ forloop.counter0 }}"
+                          >
+                          <div class="uk-inline">
+                            <div class="word">
+                              {{ snt.word }}
+                            </div>
+                            <div
+                              uk-drop="mode: click; pos: bottom-center; offset: 2"
+                            >
+                              <div class="uk-card uk-card-body uk-card-default uk-padding-small">
+                                <div class="uk-text-center">
+                                  <span style="font-size: 11pt">
+                                    Category for
+                                    <strong><u>{{ snt.word }}</u></strong>:
+                                  </span>
+                                  <div class="uk-margin-small"></div>
+                                  <form onsubmit="return addCategory(this)">
+                                    <div class="uk-inline">
+                                      <button
+                                        class="uk-form-icon uk-form-icon-flip"
+                                        uk-icon="icon: plus"
+                                        type="submit"
+                                      ></button>
+                                      <input
+                                        type="text"
+                                        class="uk-input uk-text-center"
+                                        value="{{ snt.category|default:'' }}"
+                                        placeholder="e.g. S/NP"
+                                        autofocus
+                                      >
+                                    </div>
+                                  </form>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="marker"></div>
+                          <div class="category">
+                            {% if snt.category %}{{ snt.category }}{% endif %}
+                          </div>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+                <hr class="uk-margin-remove">
+              {% endfor %}
+            {% endif %}
           </div>
+          <button
+            class="uk-button uk-button-default uk-width-1-1 bg-4 hvbg-4"
+            style="border: 0; border-top: 1px solid #efefef"
+            uk-toggle="#add-sentences-modal"
+          >
+            <span uk-icon="icon: plus"></span>
+            Add Sentence
+          </button>
         </div>
         <div class="uk-padding-small"></div>
         <div class="uk-width-1-4">
@@ -84,7 +165,7 @@
           >
             <div class="uk-flex uk-flex-between uk-flex-middle">
               <h4 class="uk-margin-remove">Project Detail</h4>
-              <a uk-icon="icon: refresh" uk-tooltip="Update project detail."></a>
+              <!-- <a uk-icon="icon: refresh" uk-tooltip="Update project detail."></a> -->
             </div>
             <div class="uk-margin-small">
               <label class="uk-form-label" for="project-name">
@@ -97,6 +178,7 @@
                   class="uk-input"
                   value="{{ project.name }}"
                   placeholder="(insert project name)"
+                  onchange="updateName(this)"
                 >
               </div>
             </div>
@@ -105,7 +187,11 @@
                 Project Status
               </label>
               <div class="uk-form-controls">
-                <select class="uk-select" id="project-status">
+                <select
+                  class="uk-select"
+                  id="project-status"
+                  onchange="updateStatus(this)"
+                >
                   <option
                     value="0"
                     {% if project.status == 0 %} selected {% endif %}
@@ -139,14 +225,15 @@
           >
             <div class="uk-flex uk-flex-between uk-flex-middle">
               <h4 class="uk-margin-remove">Automation Rules</h4>
-              <a uk-icon="icon: refresh" uk-tooltip="Update CCG automation rules."></a>
+              <!-- <a uk-icon="icon: refresh" uk-tooltip="Update CCG automation rules."></a> -->
             </div>
             <div class="uk-margin-small">
               <textarea
                 class="uk-textarea"
                 placeholder="(insert CCG lexicon rules)"
                 style="min-height: 100px"
-              >:- S, N, NP, VP</textarea>
+                onchange="updateRules(this)"
+              >{{ project.rules }}</textarea>
             </div>
           </div>
           <div
@@ -155,54 +242,231 @@
             <div class="uk-flex uk-flex-between uk-flex-middle">
               <h4 class="uk-margin-remove">CCG Lexicons</h4>
             </div>
-            <div class="uk-margin-small" style="min-height: 80px">
-              <div
-                class="uk-flex uk-flex-center uk-flex-middle"
-                style="min-height: 80px"
-              >
-                <div class="uk-padding-medium">
-                  There is no CCG lexicons recorded.
-                </div>
-              </div>
-            </div>
+            <div
+              class="uk-margin-small ccg-lexicons"
+              style="min-height: 80px"
+            ></div>
           </div>
         </div>
       </div>
     </div>
   </main>
 
-  <div id="add-sentence-modal" class="uk-flex-top" uk-modal>
-    <div class="uk-modal-dialog uk-margin-auto-vertical uk-width-1-3">
+  <div id="add-sentences-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-margin-auto-vertical uk-width-1-2">
       <button class="uk-modal-close-default" type="button" uk-close></button>
       <div class="uk-modal-header">
-        <h3>Add New Sentence</h3>
+        <h3>Add New Sentences</h3>
       </div>
       <div class="uk-modal-body uk-padding-small">
-        <input
-          name="sentence"
-          class="uk-input uk-width-1-1"
-          type="text"
-          placeholder="This is an example sentence."
-        >
-        <p class="uk-text-right uk-margin-remove-bottom">
-          <button
-            class="uk-button uk-button-default uk-modal-close"
-            type="button"
-          >
-            Cancel
-          </button>
-          <button
-            class="uk-button uk-button-primary"
-            type="button"
-          >
-            Add Sentence
-          </button>
-        </p>
+        <form method="POST" action="/projects/{{ project.uuid }}/sentences/">
+          {% csrf_token %}
+          <textarea
+            name="sentences"
+            class="uk-textarea uk-width-1-1"
+            placeholder="This is an example sentence. You may add more."
+            style="min-height: 200px"
+          ></textarea>
+          <p class="uk-text-right uk-margin-remove-bottom">
+            <button
+              class="uk-button uk-button-default uk-modal-close"
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              class="uk-button uk-button-primary"
+              type="submit"
+            >
+              Add Sentences
+            </button>
+          </p>
+        </form>
       </div>
     </div>
   </div>
 
   <script type="text/javascript">
+    const project = {
+      name: '{{ project.name }}',
+      status: parseInt('{{ project.status }}', 10),
+      rules: '{{ project.rules }}',
+    };
+
+    const catCounter = {};
+    const raw = '{{ snt_json|safe }}';
+    const data = JSON.parse(raw.replace(/\\/g, '\\\\'));
+
+    const sentences = {};
+    data.forEach(snt => {
+      sentences[snt.fields.uuid] = snt.fields;
+
+      snt.fields.categories.forEach(cat => {
+        if (!catCounter[cat]) {
+          catCounter[cat] = 0;
+        }
+
+        catCounter[cat] += 1;
+      });
+    });
+    renderCatCounter();
+
+    const changes = { project: {}, sentences: {} };
+    isSavable();
+
+    function isSavable() {
+      const chngs = document.querySelector('textarea[name=changes]');
+      const button = document.querySelector('.save-button');
+      const status = document.querySelector('.changes-status');
+
+      if (
+        Object.keys(changes.project).length > 0 ||
+        Object.keys(changes.sentences).length > 0
+      ) {
+        chngs.value = JSON.stringify(changes);
+        status.innerHTML = 'unsaved changes';
+        button.disabled = false;
+      } else {
+        chngs.value = '';
+        status.innerHTML = '';
+        button.disabled = true;
+      }
+    }
+
+    function updateName(elm) {
+      const name = elm.value;
+      if (project.name !== name) {
+        changes.project.name = name;
+      } else {
+        if (changes.project.name) {
+          delete changes.project.name;
+        }
+      }
+
+      isSavable();
+    }
+
+    function updateStatus(elm) {
+      const status = elm.value;
+      if (project.status !== status) {
+        changes.project.status = status;
+      } else {
+        if (changes.project.status) {
+          delete changes.project.status;
+        }
+      }
+
+      isSavable();
+    }
+
+    function updateRules(elm) {
+      const rules = elm.value;
+      if (project.rules !== rules) {
+        changes.project.rules = rules;
+      } else {
+        if (changes.project.rules) {
+          delete changes.project.rules;
+        }
+      }
+
+      isSavable();
+    }
+
+    function updateCatCounter(oldCat, newCat) {
+      console.log(oldCat, newCat);
+      if (oldCat !== newCat) {
+        if (!catCounter[newCat]) {
+          catCounter[newCat] = 0;
+        }
+
+        catCounter[newCat] += 1;
+        catCounter[oldCat] -= 1;
+
+        if (catCounter[oldCat] < 1) {
+          delete catCounter[oldCat];
+        }
+      }
+    }
+
+    function renderCatCounter() {
+      const elm = document.querySelector('.ccg-lexicons');
+      const keys = Object.keys(catCounter);
+      if (keys.filter(k => k === 'null').length > 0 && keys.length < 2) {
+        const html = `
+          <div
+            class="uk-flex uk-flex-center uk-flex-middle"
+            style="min-height: 80px"
+          >
+            <div class="uk-padding-medium">
+              There is no CCG lexicons recorded.
+            </div>
+          </div>
+        `;
+        elm.innerHTML = html;
+      } else {
+        let html = `
+          <div class="uk-flex uk-flex-left uk-flex-wrap">
+        `;
+        keys.forEach(key => {
+          if (key !== 'null') {
+            html += '<div class="lexicon-label">';
+            html += `<div class="category">${key}</div>`;
+            html += `<div class="count">${catCounter[key]}</div>`;
+            html += '</div>';
+          }
+        });
+        html += '</div>';
+        elm.innerHTML = html;
+      }
+    }
+
+    function addCategory(elm) {
+      const form = elm;
+      const input = elm.querySelector('input');
+
+      const drop = elm.parentElement.parentElement.parentElement;
+      const word = drop.parentElement.parentElement;
+      const category = word.querySelector('.category');
+
+      category.innerHTML = input.value;
+
+      const index = parseInt(word.querySelector('input').dataset.index, 10);
+      const sentence = word.parentElement.parentElement.parentElement;
+      const { uuid } = sentence.dataset;
+
+      const newCat = input.value === '' ? null : input.value;
+      let oldCat = null;
+      if (changes.sentences[uuid]) {
+        oldCat = changes.sentences[uuid][index];
+      } else {
+        oldCat = sentences[uuid].categories[index];
+      }
+
+      updateCatCounter(oldCat, newCat);
+
+      if (sentences[uuid].categories[index] === newCat) {
+        if (changes.sentences[uuid]) {
+          if (changes.sentences[uuid][index] !== undefined) {
+            delete changes.sentences[uuid][index];
+
+            if (Object.keys(changes.sentences[uuid]).length === 0) {
+              delete changes.sentences[uuid];
+            }
+          }
+        }
+      } else {
+        if (!changes.sentences[uuid]) {
+          changes.sentences[uuid] = {};
+        }
+
+        changes.sentences[uuid][index] = newCat;
+      }
+
+      UIkit.drop(drop).hide(0);
+      renderCatCounter();
+      isSavable();
+      return false;
+    }
   </script>
 
   {% include 'footer.html' %}

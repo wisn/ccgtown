@@ -163,3 +163,65 @@ main {
 .editor-header a.icon:hover {
   background-color: #efefef;
 }
+
+.changes-status {
+  font-size: 9pt;
+}
+
+.editor-body {
+  min-height: calc(100vh - 280px);
+}
+
+.editor-body .line-number {
+  font-size: 16px;
+}
+
+.editor-body .section:hover {
+  background-color: #efefef;
+}
+
+.editor-body .sentence {
+  border-left: 1px solid #efefef;
+  font-size: 20px;
+}
+
+.editor-body .sentence > div > div {
+  margin: 8px 12px 16px;
+}
+
+.editor-body .sentence .word {
+  padding: 6px;
+}
+
+.editor-body .sentence .word:hover {
+  background-color: #bc6ff1;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.editor-body .sentence .marker {
+  background-color: #3e045e;
+  height: 2px;
+  width: 100%;
+}
+
+.editor-body .sentence .category {
+  font-size: 14px;
+}
+
+.lexicon-label {
+  border: 2px solid #efefef;
+  display: flex;
+  font-size: 10pt;
+  justify-content: flex-start;
+  margin: 4px 8px;
+}
+
+.lexicon-label .category {
+  background-color: #efefef;
+  padding: 4px 8px;
+}
+
+.lexicon-label .count {
+  padding: 4px 8px;
+}

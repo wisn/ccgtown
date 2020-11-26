@@ -20,3 +20,15 @@ def serialize_json(arr: list, fields: tuple = ()):
         ret.append(filtered_obj)
 
     return ret
+
+def reconstruct_sentences(snt):
+    ret = []
+    for s in snt:
+        line = { 'uuid': s.uuid, 'body': [] }
+        for i in range(len(s.words)):
+            line['body'].append({
+                'word': s.words[i],
+                'category': s.categories[i],
+            })
+        ret.append(line)
+    return ret

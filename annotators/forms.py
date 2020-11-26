@@ -12,3 +12,6 @@ class LoginForm(forms.Form):
 
 class CreateProjectForm(forms.Form):
     project_name = forms.CharField(max_length=254)
+
+class NewSentencesForm(forms.Form):
+    sentences = forms.Textarea
