@@ -171,7 +171,7 @@ def projects(request):
             return HttpResponseRedirect(reverse('projects'))
 
 
-def delete_project(request, project_uuid):
+def remove_project(request, project_uuid):
     user = request.session.get('user', None)
     if not user:
         msg = 'Please login before accessing Projects page.'
@@ -190,17 +190,17 @@ def delete_project(request, project_uuid):
         acc = Account.objects.get(uuid=user['uuid'])
         prj = prj[0]
         if acc.uuid != prj.author.uuid:
-            msg = 'You are not allowed to delete the project.'
+            msg = 'You are not allowed to remove the project.'
             messages.add_message(request, messages.ERROR, msg)
             return HttpResponseRedirect(reverse('projects'))
 
         try:
             prj.delete()
-            msg = 'Project deleted.'
+            msg = 'Project removed.'
             messages.add_message(request, messages.INFO, msg)
             return HttpResponseRedirect(reverse('projects'))
         except:
-            msg = 'Can not delete project. Internal server error.'
+            msg = 'Can not remove project. Internal server error.'
             messages.add_message(request, messages.ERROR, msg)
             return HttpResponseRedirect(reverse('projects'))
 
@@ -275,10 +275,14 @@ def new_sentences(request, project_uuid):
                 snt.derivations = []
                 snt.save()
                 count += 1
-                prj.updated_at = timezone.now()
-                prj.save()
             except:
                 pass
+
+        try:
+            prj.updated_at = timezone.now()
+            prj.save()
+        except:
+            pass
 
         msg = 'Added %s new sentence(s).' % count
         messages.add_message(request, messages.INFO, msg)
@@ -324,6 +328,7 @@ def add_changes(request, project_uuid):
                 for index in c_snt[uuid]:
                     sentence.categories[int(index)] = c_snt[uuid][index]
                 try:
+                    sentence.updated_at = timezone.now()
                     sentence.save()
                     count += 1
                 except:
@@ -337,10 +342,54 @@ def add_changes(request, project_uuid):
                 except:
                     pass
             else:
-                msgs.append('There is no sentence updated. Internal server error')
+                msgs.append('There is no sentence updated. Internal server error.')
 
         for msg in msgs:
             messages.add_message(request, messages.INFO, msg)
 
         return HttpResponseRedirect(reverse('editor', args=(project_uuid,)))
+
+
+def remove_sentence(request, project_uuid, sentence_uuid):
+    user = request.session.get('user', None)
+    if not user:
+        msg = 'Please login before accessing Editor page.'
+        messages.add_message(request, messages.INFO, msg)
+        return HttpResponseRedirect(reverse('login'))
+
+    if request.method == 'POST':
+        # pylint: disable=no-member
+        prj = Project.objects.filter(uuid=project_uuid)
+        if len(prj) == 0:
+            msg = 'Project does not exists.'
+            messages.add_message(request, messages.ERROR, msg)
+            return HttpResponseRedirect(reverse('projects'))
+
+        # pylint: disable=no-member
+        acc = Account.objects.get(uuid=user['uuid'])
+        prj = prj[0]
+        if acc.uuid != prj.author.uuid:
+            msg = 'You are not allowed to remove anything in this project.'
+            messages.add_message(request, messages.ERROR, msg)
+            return HttpResponseRedirect(reverse('projects'))
+
+        # pylint: disable=no-member
+        snt = Sentence.objects.filter(uuid=sentence_uuid)
+        if len(snt) == 0:
+            msg = 'Sentence does not exists.'
+            messages.add_message(request, messages.ERROR, msg)
+            return HttpResponseRedirect(reverse('editor', args=(project_uuid,)))
+
+        snt = snt[0]
+        try:
+            snt.delete()
+            msg = 'Sentence removed.'
+            messages.add_message(request, messages.INFO, msg)
+            prj.updated_at = timezone.now()
+            prj.save()
+            return HttpResponseRedirect(reverse('editor', args=(project_uuid,)))
+        except:
+            msg = 'Unable to remove sentence. Internal server error.'
+            messages.add_message(request, messages.ERROR, msg)
+            return HttpResponseRedirect(reverse('editor', args=(project_uuid,)))
 

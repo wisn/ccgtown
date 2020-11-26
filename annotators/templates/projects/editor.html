@@ -93,7 +93,7 @@
             {% else %}
               {% for sentence in sentences %}
                 <div
-                  class="uk-flex uk-flex-middle uk-flex-middle section"
+                  class="uk-flex uk-flex-middle uk-flex-middle section uk-inline"
                   data-uuid="{{ sentence.uuid }}"
                 >
                   <div class="line-number uk-padding-small uk-height-auto uk-width-auto">
@@ -149,6 +149,49 @@
                       {% endfor %}
                     </div>
                   </div>
+                  <div class="uk-position-top-right">
+                    <div class="uk-inline" style="padding: 4px 4px 0 0">
+                      <a class="uk-icon-button actions" uk-icon="icon: more"></a>
+                      <div
+                        class="uk-padding-remove"
+                        uk-dropdown="delay-hide: 0; offset: -34; pos: left-top"
+                      >
+                        <ul class="uk-nav uk-dropdown-nav">
+                          <li
+                            class="uk-nav-header uk-text-center"
+                            style="border: 1px solid #efefef"
+                          >
+                            <strong>
+                              More Actions
+                            </strong>
+                          </li>
+                          <li>
+                            <button
+                              class="uk-button uk-button-default uk-button-small uk-width-1-1"
+                            >
+                              Generate CCG Derivation
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              class="uk-button uk-button-default uk-button-small uk-width-1-1"
+                            >
+                              View CCG Derivation
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              class="uk-button uk-button-danger uk-button-small uk-width-1-1"
+                              onclick="confirmRemoveSentence('{{ sentence.uuid }}')"
+                              uk-toggle="#remove-sentence-modal"
+                            >
+                              Remove Sentence
+                            </button>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <hr class="uk-margin-remove">
               {% endfor %}
@@ -160,7 +203,7 @@
             uk-toggle="#add-sentences-modal"
           >
             <span uk-icon="icon: plus"></span>
-            Add Sentence
+            Add Sentences
           </button>
         </div>
         <div class="uk-padding-small"></div>
@@ -291,8 +334,41 @@
     </div>
   </div>
 
+  <div id="remove-sentence-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-margin-auto-vertical uk-width-1-3">
+      <button class="uk-modal-close-default" type="button" uk-close></button>
+      <div class="uk-modal-header">
+        <h3>Remove Sentence</h3>
+      </div>
+      <div class="uk-modal-body uk-padding-small">
+        <form method="POST">
+          {% csrf_token %}
+          <div>
+            Are you sure want to remove
+            "<strong class="sentence"></strong>" sentence?
+          </div>
+          <p class="uk-text-right uk-margin-remove-bottom">
+            <button
+              class="uk-button uk-button-default uk-modal-close"
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              class="uk-button uk-button-danger"
+              type="submit"
+            >
+              Remove Sentence
+            </button>
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <script type="text/javascript">
     const project = {
+      uuid: '{{ project.uuid }}',
       name: '{{ project.name }}',
       status: parseInt('{{ project.status }}', 10),
       rules: '{{ project.rules }}',
@@ -378,7 +454,6 @@
     }
 
     function updateCatCounter(oldCat, newCat) {
-      console.log(oldCat, newCat);
       if (oldCat !== newCat) {
         if (!catCounter[newCat]) {
           catCounter[newCat] = 0;
@@ -442,7 +517,7 @@
       const newCat = input.value === '' ? null : input.value;
       let oldCat = null;
       if (changes.sentences[uuid]) {
-        oldCat = changes.sentences[uuid][index] || sentences[uuid].categories[index];
+        oldCat = changes.sentences[uuid][index] || null;
       } else {
         oldCat = sentences[uuid].categories[index];
       }
@@ -471,6 +546,14 @@
       renderCatCounter();
       isSavable();
       return false;
+    }
+
+    function confirmRemoveSentence(uuid) {
+      const modal = document.getElementById('remove-sentence-modal');
+      const sentence = modal.querySelector('.sentence');
+      sentence.innerHTML = sentences[uuid].words.join(' ');
+      const form = modal.querySelector('form');
+      form.action = `/projects/${project.uuid}/sentences/${uuid}/remove/`;
     }
   </script>
 

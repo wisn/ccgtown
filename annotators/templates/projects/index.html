@@ -64,10 +64,10 @@
                     <th class="uk-table-shrink">
                       <div align="center">Status</div>
                     </th>
-                    <th class="uk-width-1-6">
+                    <th class="uk-width-1-5">
                       <div align="center">Created</div>
                     </th>
-                    <th class="uk-width-1-6">
+                    <th class="uk-width-1-5">
                       <div align="center">Last Modified</div>
                     </th>
                     <th class="uk-width-small">
@@ -76,6 +76,8 @@
                   </tr>
                 </thead>
                 <tbody>
+                  {% load tz %}
+                  {% get_current_timezone as T_Z %}
                   {% for project in projects %}
                     <tr>
                       <!-- <td><input class="uk-checkbox" type="checkbox"></td> -->
@@ -107,12 +109,14 @@
                       </td>
                       <td>
                         <div align="center" class="uk-text-small">
-                          {{ project.created_at }}
+                          {{ project.created_at|localtime }}
+                          {{ T_Z }}
                         </div>
                       </td>
                       <td>
                         <div align="center" class="uk-text-small">
-                          {{ project.updated_at }}
+                          {{ project.updated_at|localtime }}
+                          {{ T_Z }}
                         </div>
                       </td>
                       <td>
@@ -124,9 +128,9 @@
                           ></a>
                           <a
                             uk-icon="icon: trash"
-                            uk-tooltip="Delete this project."
-                            uk-toggle="#delete-project-modal"
-                            onclick="updateDelPrjForm('{{ project.uuid }}', '{{ project.name }}')"
+                            uk-tooltip="Remove this project."
+                            uk-toggle="#remove-project-modal"
+                            onclick="confirmRemPrj('{{ project.uuid }}', '{{ project.name }}')"
                           ></a>
                         </div>
                       </td>
@@ -177,17 +181,17 @@
     </div>
   </div>
 
-  <div id="delete-project-modal" class="uk-flex-top" uk-modal>
+  <div id="remove-project-modal" class="uk-flex-top" uk-modal>
     <div class="uk-modal-dialog uk-margin-auto-vertical uk-width-1-3">
       <button class="uk-modal-close-default" type="button" uk-close></button>
       <div class="uk-modal-header">
-        <h3>Delete Project</h3>
+        <h3>Remove Project</h3>
       </div>
       <div class="uk-modal-body uk-padding-small">
-        <form method="POST" action="/projects/">
+        <form method="POST">
           {% csrf_token %}
           <div>
-            Are you sure want to delete
+            Are you sure want to remove
             "<strong class="project-name"></strong>"?
           </div>
           <p class="uk-text-right uk-margin-remove-bottom">
@@ -201,7 +205,7 @@
               class="uk-button uk-button-danger"
               type="submit"
             >
-              Delete Project
+              Remove Project
             </button>
           </p>
         </form>
@@ -210,10 +214,10 @@
   </div>
 
   <script type="text/javascript">
-    function updateDelPrjForm(pid, name) {
-      const form = document.querySelector('#delete-project-modal form');
-      form.action = `/projects/${pid}/delete/`;
-      const nameElm = document.querySelector('#delete-project-modal .project-name');
+    function confirmRemPrj(pid, name) {
+      const form = document.querySelector('#remove-project-modal form');
+      form.action = `/projects/${pid}/remove/`;
+      const nameElm = document.querySelector('#remove-project-modal .project-name');
       nameElm.innerHTML = name;
     }
   </script>

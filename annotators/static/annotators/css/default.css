@@ -176,8 +176,17 @@ main {
   font-size: 16px;
 }
 
+.editor-body .actions {
+  display: none;
+}
+
 .editor-body .section:hover {
   background-color: #efefef;
+}
+
+.editor-body .section:hover .actions,
+.editor-body .section:focus .actions {
+  display: flex;
 }
 
 .editor-body .sentence {
@@ -224,4 +233,8 @@ main {
 
 .lexicon-label .count {
   padding: 4px 8px;
+}
+
+#remove-sentence-modal {
+  z-index: 9999;
 }
