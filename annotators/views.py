@@ -7,6 +7,7 @@ from django.utils import timezone
 
 import bcrypt
 import json
+from nltk.ccg import chart, lexicon
 from nltk.tokenize import sent_tokenize, word_tokenize
 
 from .models import Account, Project, Sentence
@@ -391,5 +392,56 @@ def remove_sentence(request, project_uuid, sentence_uuid):
         except:
             msg = 'Unable to remove sentence. Internal server error.'
             messages.add_message(request, messages.ERROR, msg)
+            return HttpResponseRedirect(reverse('editor', args=(project_uuid,)))
+
+
+def gen_ccg_deriv(request, project_uuid, sentence_uuid):
+    user = request.session.get('user', None)
+    if not user:
+        msg = 'Please login before accessing Editor page.'
+        messages.add_message(request, messages.INFO, msg)
+        return HttpResponseRedirect(reverse('login'))
+
+    if request.method == 'POST':
+        # pylint: disable=no-member
+        prj = Project.objects.filter(uuid=project_uuid)
+        if len(prj) == 0:
+            msg = 'Project does not exists.'
+            messages.add_message(request, messages.ERROR, msg)
+            return HttpResponseRedirect(reverse('projects'))
+
+        # pylint: disable=no-member
+        snt = Sentence.objects.filter(uuid=sentence_uuid)
+        if len(snt) == 0:
+            msg = 'Sentence does not exists.'
+            messages.add_message(request, messages.ERROR, msg)
+            return HttpResponseRedirect(reverse('editor', args=(project_uuid,)))
+
+        prj = prj[0]
+        snt = snt[0]
+        rules = prj.rules + '\n\n'
+
+        for i in range(len(snt.words)):
+            rules += '%s => %s\n' % (snt.words[i], snt.categories[i])
+
+        try:
+            lex = lexicon.parseLexicon(rules)
+            parser = chart.CCGChartParser(lex, chart.DefaultRuleSet)
+            result = next(parser.parse(snt.words))
+            derivations = utils.makeCCGDeriv(result)
+
+            snt.derivations = derivations
+            snt.save()
+
+            msg = 'CCG derivation successfully generated.'
+            messages.add_message(request, messages.INFO, msg)
+            return HttpResponseRedirect(reverse('editor', args=(project_uuid,)))
+        except:
+            msgs = [
+                'Unable to generate CCG derivation.',
+                'Make sure that Automation Rules are valid.',
+                'Also, all words must be assigned with a valid CCG category.',
+            ]
+            messages.add_message(request, messages.ERROR, ' '.join(msgs))
             return HttpResponseRedirect(reverse('editor', args=(project_uuid,)))
 

@@ -17,4 +17,8 @@ urlpatterns = [
         'projects/<uuid:project_uuid>/sentences/<uuid:sentence_uuid>/remove/',
         views.remove_sentence,
     ),
+    path(
+        'projects/<uuid:project_uuid>/sentences/<uuid:sentence_uuid>/deriv/',
+        views.gen_ccg_deriv,
+    ),
 ]

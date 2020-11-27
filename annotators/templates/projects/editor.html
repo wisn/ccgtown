@@ -108,7 +108,7 @@
                             data-index="{{ forloop.counter0 }}"
                           >
                           <div class="uk-inline">
-                            <div class="word">
+                            <div class="word" onclick="selectCategory(this)">
                               {{ snt.word }}
                             </div>
                             <div
@@ -166,11 +166,18 @@
                             </strong>
                           </li>
                           <li>
-                            <button
-                              class="uk-button uk-button-default uk-button-small uk-width-1-1"
+                            <form
+                              method="POST"
+                              action="/projects/{{ project.uuid }}/sentences/{{ sentence.uuid }}/deriv/"
                             >
-                              Generate CCG Derivation
-                            </button>
+                              {% csrf_token %}
+                              <button
+                                class="uk-button uk-button-default uk-button-small uk-width-1-1"
+                                type="submit"
+                              >
+                                Generate CCG Derivation
+                              </button>
+                            </form>
                           </li>
                           <li>
                             <button
@@ -498,6 +505,12 @@
         html += '</div>';
         elm.innerHTML = html;
       }
+    }
+
+    function selectCategory(elm) {
+      const word = elm.parentElement;
+      const input = word.querySelector('input');
+      input.select();
     }
 
     function addCategory(elm) {
