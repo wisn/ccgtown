@@ -235,6 +235,43 @@ main {
   padding: 4px 8px;
 }
 
-#remove-sentence-modal {
+#remove-sentence-modal,
+#gen-ccg-deriv-modal,
+#view-ccg-deriv-modal {
   z-index: 9999;
+}
+
+.derivation-canvas {
+  height: auto;
+  margin: 0 auto;
+  overflow: auto;
+  width: auto;
+}
+
+.ccg-derivation {
+  border-spacing: .5em;
+  font-size: 12pt;
+  margin: 2em auto;
+}
+
+.ccg-derivation .words {
+  font-family: Arial;
+  font-size: 14pt;
+  font-weight: 900;
+}
+
+.ccg-derivation .categories {
+  font-family: Courier New;
+  font-size: 12pt;
+}
+
+.ccg-derivation .rulers hr {
+  border-top: 1px solid #222222;
+  margin: 0;
+}
+
+.ccg-derivation .word,
+.ccg-derivation .category,
+.ccg-derivation .operator {
+  text-align: center;
 }

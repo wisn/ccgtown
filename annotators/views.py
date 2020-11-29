@@ -135,7 +135,7 @@ def projects(request):
 
     if request.method == 'GET':
         # pylint: disable=no-member
-        projects = Project.objects.filter(author=user['id'])
+        projects = Project.objects.filter(author=user['id']).order_by('id')
         context = {
             'page': {
                 'title': 'Projects',
@@ -221,7 +221,7 @@ def editor(request, project_uuid):
         return HttpResponseRedirect(reverse('projects'))
 
     prj = prj[0]
-    sentences = Sentence.objects.filter(project=prj)
+    sentences = Sentence.objects.filter(project=prj).order_by('id')
     snt_json = serializers.serialize('json', sentences)
     sentences = utils.reconstruct_sentences(sentences)
 
