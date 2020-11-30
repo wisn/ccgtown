@@ -544,7 +544,7 @@
     const derivations = {};
     data.forEach(snt => {
       sentences[snt.fields.uuid] = snt.fields;
-      derivations[snt.fields.uuid] = snt.fields.derivations;
+      derivations[snt.fields.uuid] = JSON.parse(JSON.stringify(snt.fields.derivations));
 
       snt.fields.categories.forEach(cat => {
         if (!catCounter[cat]) {
@@ -599,7 +599,8 @@
 
       if (
         Object.keys(changes.project).length > 0 ||
-        Object.keys(changes.sentences).length > 0
+        Object.keys(changes.sentences).length > 0 ||
+        Object.keys(changes.derivations).length > 0
       ) {
         chngs.value = JSON.stringify(changes);
         statuses.forEach(status => status.innerHTML = 'unsaved changes');
@@ -826,19 +827,31 @@
               colspan = (to - from + 1) * 2 - 1;
             }
 
-            rulers += `<td class="ruler" colspan="${colspan}"><hr></td>`;
-            rulers += `<td class="operator" data-index="${idx}">`;
-            rulers += escHTML(operator || '');
-            rulers += '</td>';
-
-            const cls = ['category'];
-            if (!category || category === '') {
-              cls.push('blank');
+            const oprCls = ['operator'];
+            if (!operator || operator === '') {
+              if (i > 1) {
+                oprCls.push('blank');
+              }
             } else {
-              cls.push('assigned');
+              oprCls.push('assigned');
             }
 
-            categories += `<td class="${cls.join(' ')}" colspan="${colspan}" `;
+            rulers += `<td class="ruler" colspan="${colspan}"><hr></td>`;
+            rulers += `<td class="${oprCls.join(' ')}" data-index="${idx}"`;
+            if (i > 1) {
+              rulers += 'onclick="derivEditableOpr(this)"';
+            }
+            rulers += '>' + escHTML(operator || '');
+            rulers += '</td>';
+
+            const catCls = ['category'];
+            if (!category || category === '') {
+              catCls.push('blank');
+            } else {
+              catCls.push('assigned');
+            }
+
+            categories += `<td class="${catCls.join(' ')}" colspan="${colspan}" `;
             categories += `data-index="${idx}" onclick="derivEditableCat(this)">`;
             categories += escHTML(category || '');
             categories += '</td>';
@@ -953,7 +966,7 @@
       elm.classList.add('editable');
       elm.focus();
 
-      const exitEditableScene = (opts = { save: true }) => {
+      function exitEditableScene(opts = { save: true }) {
         return () => {
           elm.contentEditable = false;
           resetClasses();
@@ -984,17 +997,119 @@
           } else {
             elm.classList.add('assigned');
           }
-        };
-      };
 
-      elm.addEventListener('focusout', exitEditableScene());
-      elm.addEventListener('keyup', event => {
+          if (row !== '1') {
+            const mutableDeriv = JSON.stringify(derivations[uuid]);
+            const origDeriv = JSON.stringify(sentences[uuid].derivations);
+            if (mutableDeriv !== origDeriv) {
+              changes.derivations[uuid] = JSON.parse(JSON.stringify(derivations[uuid]));
+            } else {
+              if (changes.derivations[uuid]) {
+                delete changes.derivations[uuid];
+              }
+            }
+
+            isSavable();
+          }
+        };
+      }
+
+      function foutEvent() {
+        exitEditableScene()();
+        elm.removeEventListener('focusout', foutEvent);
+        elm.removeEventListener('keyup', kyupEvent);
+      }
+
+      function kyupEvent(event) {
+        if (event.keyCode === 13 || event.keyCode === 27) {
+          elm.removeEventListener('focusout', foutEvent);
+          elm.removeEventListener('keyup', kyupEvent);
+        }
+
         if (event.keyCode === 13) {
           exitEditableScene()();
         } else if (event.keyCode === 27) {
           exitEditableScene({ save: false })();
         }
-      });
+      }
+
+      elm.addEventListener('focusout', foutEvent);
+      elm.addEventListener('keyup', kyupEvent);
+    }
+
+    function derivEditableOpr(elm) {
+      const { row } = elm.parentElement.dataset;
+
+      const oldOpr = elm.innerText;
+      const resetClasses = () => {
+        elm.classList.remove('assigned');
+        elm.classList.remove('blank');
+        elm.classList.remove('editable');
+      };
+
+      elm.contentEditable = true;
+      resetClasses();
+      elm.classList.add('editable');
+      elm.focus();
+
+      function exitEditableScene(opts = { save: true }) {
+        return () => {
+          elm.contentEditable = false;
+          resetClasses();
+
+          if (!opts.save) {
+            elm.innerText = oldOpr;
+          } else {
+            elm.innerText = trimAll(elm.innerText);
+          }
+
+          const table = document.querySelector('table.ccg-derivation');
+          const { uuid } = table.dataset;
+          const { index } = elm.dataset;
+
+          derivations[uuid][row][index].operator = elm.innerText;
+
+          if (elm.innerText === '') {
+            elm.classList.add('blank');
+          } else {
+            elm.classList.add('assigned');
+          }
+
+          const mutableDeriv = JSON.stringify(derivations[uuid]);
+          const origDeriv = JSON.stringify(sentences[uuid].derivations);
+          if (mutableDeriv !== origDeriv) {
+            changes.derivations[uuid] = JSON.parse(JSON.stringify(derivations[uuid]));
+          } else {
+            if (changes.derivations[uuid]) {
+              delete changes.derivations[uuid];
+            }
+          }
+
+          isSavable();
+        };
+      }
+
+      function foutEvent() {
+        exitEditableScene()();
+        elm.removeEventListener('focusout', foutEvent);
+        elm.removeEventListener('keyup', kyupEvent);
+      }
+
+      function kyupEvent(event) {
+        if (event.keyCode === 13 || event.keyCode === 27) {
+          elm.removeEventListener('focusout', foutEvent);
+          elm.removeEventListener('keyup', kyupEvent);
+        }
+
+        if (event.keyCode === 13) {
+          exitEditableScene()();
+        } else if (event.keyCode === 27) {
+          exitEditableScene({ save: false })();
+        }
+      }
+
+      elm.addEventListener('focusout', foutEvent);
+      elm.addEventListener('keyup', kyupEvent);
     }
   </script>
 

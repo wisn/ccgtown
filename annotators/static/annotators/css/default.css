@@ -283,29 +283,36 @@ main {
 }
 
 .ccg-derivation .category.blank,
-.ccg-derivation .category.assigned:hover {
+.ccg-derivation .category.assigned:hover,
+.ccg-derivation .operator.blank,
+.ccg-derivation .operator.assigned:hover {
   background-color: #bc6ff1;
   color: #ffffff;
   cursor: pointer;
 }
 
 .ccg-derivation .category.blank:hover,
-.ccg-derivation .category.assigned:hover {
+.ccg-derivation .category.assigned:hover,
+.ccg-derivation .operator.blank:hover,
+.ccg-derivation .operator.assigned:hover {
   background-color: #52057b;
 }
 
-.ccg-derivation .category.editable {
+.ccg-derivation .category.editable,
+.ccg-derivation .operator.editable {
   border: 1px solid #52057b;
   cursor: text;
 }
 
-.ccg-derivation .category.editable:hover {
+.ccg-derivation .category.editable:hover,
+.ccg-derivation .operator.editable:hover {
   background-color: #ffffff;
   color: #222222;
   cursor: text;
 }
 
-.ccg-derivation .category.blank {
+.ccg-derivation .category.blank,
+.ccg-derivation .operator.blank {
   padding: 15px 0;
 }
 
