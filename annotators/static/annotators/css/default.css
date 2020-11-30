@@ -237,7 +237,9 @@ main {
 
 #remove-sentence-modal,
 #gen-ccg-deriv-modal,
-#view-ccg-deriv-modal {
+#view-ccg-deriv-modal,
+#auto-assign-modal,
+#remove-project-modal {
   z-index: 9999;
 }
 
@@ -274,4 +276,31 @@ main {
 .ccg-derivation .category,
 .ccg-derivation .operator {
   text-align: center;
+}
+
+.ccg-derivation .category.blank,
+.ccg-derivation .category.assigned:hover {
+  background-color: #bc6ff1;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.ccg-derivation .category.editable {
+  border: 1px solid #bc6ff1;
+  cursor: text;
+}
+
+.ccg-derivation .category.editable:hover {
+  background-color: #ffffff;
+  color: #222222;
+  cursor: text;
+}
+
+.ccg-derivation .category.blank {
+  padding: 15px 0;
+}
+
+.uk-notification-message {
+  background-color: #52057b;
+  color: #ffffff;
 }

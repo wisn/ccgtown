@@ -47,6 +47,46 @@
                 Save
               </button>
             </form>
+            <div style="padding: 4px"></div>
+            <div class="uk-inline">
+              <button
+                class="uk-button uk-button-default"
+                style="padding: 0 4px"
+                uk-icon="icon: more-vertical"
+              >
+              </button>
+              <div
+                class="uk-padding-remove"
+                uk-dropdown="delay-hide: 0; mode: click; pos: bottom-left"
+              >
+                <ul class="uk-nav uk-dropdown-nav">
+                  <li
+                    class="uk-nav-header uk-text-center"
+                    style="border: 1px solid #efefef"
+                  >
+                    <strong>
+                      More Actions
+                    </strong>
+                  </li>
+                  <li>
+                    <button
+                      class="uk-button uk-button-default uk-button-small uk-width-1-1"
+                      uk-toggle="#auto-assign-modal"
+                    >
+                      Auto-assign Category
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      class="uk-button uk-button-danger uk-button-small uk-width-1-1"
+                      uk-toggle="#remove-project-modal"
+                    >
+                      Remove Project
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
             <!-- <div style="padding: 4px"></div>
             <a
               class="uk-icon-button"
@@ -102,11 +142,10 @@
                   <div class="sentence uk-padding-small uk-width-expand">
                     <div class="uk-flex uk-flex-left uk-flex-wrap">
                       {% for snt in sentence.body %}
-                        <div class="uk-flex uk-flex-column uk-text-center">
-                          <input
-                            type="hidden"
-                            data-index="{{ forloop.counter0 }}"
-                          >
+                        <div
+                          class="uk-flex uk-flex-column uk-text-center"
+                          data-index="{{ forloop.counter0 }}"
+                        >
                           <div class="uk-inline">
                             <div class="word" onclick="selectCategory(this)">
                               {{ snt.word }}
@@ -405,11 +444,81 @@
     </div>
   </div>
 
-  <div id="view-ccg-deriv-modal" class="uk-modal-full" uk-modal>
+  <div id="view-ccg-deriv-modal" class="uk-modal-full" uk-modal="esc-close: false">
     <div class="uk-modal-dialog uk-padding-small" uk-height-viewport>
       <button class="uk-modal-close-full uk-close-large" type="button" uk-close></button>
-      <h3 style="margin: 0">CCG Derivation</h3>
+      <div class="uk-flex uk-flex-between uk-flex-middle">
+        <h3 style="margin: 0">CCG Derivation</h3>
+        <div class="changes-status" style="margin-right: 48px"></div>
+      </div>
       <div class="derivation-canvas"></div>
+    </div>
+  </div>
+
+  <div id="auto-assign-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-margin-auto-vertical uk-width-1-3">
+      <button class="uk-modal-close-default" type="button" uk-close></button>
+      <div class="uk-modal-header">
+        <h3>Auto-assign Category</h3>
+      </div>
+      <div class="uk-modal-body uk-padding-small">
+        <div>
+          You are about to run
+          <strong>auto-assign CCG category</strong>.
+          Meaning that any words without annotation will be
+          assigned with a new annotation if the same words
+          are already annotated before.<br>
+          <br>
+          If there are more than one annotations, we will
+          only choose one.
+        </div>
+        <p class="uk-text-right uk-margin-remove-bottom">
+          <button
+            class="uk-button uk-button-default uk-modal-close"
+            type="button"
+          >
+            Cancel
+          </button>
+          <button
+            class="uk-button uk-button-primary uk-modal-close"
+            onclick="autoAssignCCGCat()"
+          >
+            Auto-assign Now
+          </button>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div id="remove-project-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-margin-auto-vertical uk-width-1-3">
+      <button class="uk-modal-close-default" type="button" uk-close></button>
+      <div class="uk-modal-header">
+        <h3>Remove Project</h3>
+      </div>
+      <div class="uk-modal-body uk-padding-small">
+        <form method="POST" action="/projects/{{ project.uuid }}/remove/">
+          {% csrf_token %}
+          <div>
+            Are you sure want to remove
+            "<strong>{{ project.name }}</strong>"?
+          </div>
+          <p class="uk-text-right uk-margin-remove-bottom">
+            <button
+              class="uk-button uk-button-default uk-modal-close"
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              class="uk-button uk-button-danger"
+              type="submit"
+            >
+              Remove Project
+            </button>
+          </p>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -432,8 +541,10 @@
     }
 
     const sentences = {};
+    const derivations = {};
     data.forEach(snt => {
       sentences[snt.fields.uuid] = snt.fields;
+      derivations[snt.fields.uuid] = snt.fields.derivations;
 
       snt.fields.categories.forEach(cat => {
         if (!catCounter[cat]) {
@@ -445,24 +556,57 @@
     });
     renderCatCounter();
 
-    const changes = { project: {}, sentences: {} };
+    Object.keys(derivations).forEach(uuid => {
+      const derivs = derivations[uuid];
+      if (derivs.length === 0) {
+        derivs.push([]);
+        const { words } = sentences[uuid];
+        for (let i = 0; i < words.length; i++) {
+          derivs[0].push({
+            from: i,
+            to: i,
+            word: words[i],
+          });
+        }
+
+        derivs.push([]);
+        const { categories } = sentences[uuid];
+        for (let i = 0; i < words.length; i++) {
+          derivs[1].push({
+            from: i,
+            to: i,
+            category: categories[i] || '',
+          });
+        }
+
+        derivations[uuid] = derivs;
+      }
+    });
+
+    const changes = {
+      project: {},
+      sentences: {},
+      derivations: {},
+    };
     isSavable();
+
+    let mappedCat = {};
 
     function isSavable() {
       const chngs = document.querySelector('textarea[name=changes]');
       const button = document.querySelector('.save-button');
-      const status = document.querySelector('.changes-status');
+      const statuses = document.querySelectorAll('.changes-status');
 
       if (
         Object.keys(changes.project).length > 0 ||
         Object.keys(changes.sentences).length > 0
       ) {
         chngs.value = JSON.stringify(changes);
-        status.innerHTML = 'unsaved changes';
+        statuses.forEach(status => status.innerHTML = 'unsaved changes');
         button.disabled = false;
       } else {
         chngs.value = '';
-        status.innerHTML = '';
+        statuses.forEach(status => status.innerHTML = '');
         button.disabled = true;
       }
     }
@@ -562,6 +706,7 @@
     function addCategory(elm) {
       const form = elm;
       const input = elm.querySelector('input');
+      input.value = trimAll(input.value);
 
       const drop = elm.parentElement.parentElement.parentElement;
       const word = drop.parentElement.parentElement;
@@ -569,7 +714,7 @@
 
       category.innerHTML = input.value;
 
-      const index = parseInt(word.querySelector('input').dataset.index, 10);
+      const index = parseInt(word.dataset.index, 10);
       const sentence = word.parentElement.parentElement.parentElement;
       const { uuid } = sentence.dataset;
 
@@ -580,6 +725,13 @@
       } else {
         oldCat = sentences[uuid].categories[index];
       }
+
+      if (typeof oldCat === 'string') {
+        oldCat = trimAll(oldCat);
+      }
+
+      const deriv = derivations[uuid];
+      deriv[1][index].category = newCat;
 
       updateCatCounter(oldCat, newCat);
 
@@ -636,35 +788,14 @@
       const modal = document.getElementById('view-ccg-deriv-modal');
       const canvas = modal.querySelector('.derivation-canvas');
 
-      const { derivations } = sentences[uuid];
-      if (derivations.length === 0) {
-        derivations.push([]);
-        const { words } = sentences[uuid];
-        for (let i = 0; i < words.length; i++) {
-          derivations[0].push({
-            from: i,
-            to: i,
-            word: words[i],
-          });
-        }
+      const derivs = derivations[uuid];
 
-        derivations.push([]);
-        const { categories } = sentences[uuid];
-        for (let i = 0; i < words.length; i++) {
-          derivations[1].push({
-            from: i,
-            to: i,
-            category: categories[i] || '',
-          });
-        }
-      }
-
-      const n = derivations.length;
+      const n = derivs.length;
       const numOfWords = sentences[uuid].words.length;
-      let html = '<table class="ccg-derivation">';
+      let html = `<table class="ccg-derivation" data-uuid="${uuid}">`;
 
       for (let i = 0; i < n; i++) {
-        const row = derivations[i];
+        const row = derivs[i];
         if (i < 1) {
           html += `<tr class="words" data-row="${i}">`;
           row.forEach(r => {
@@ -699,7 +830,16 @@
             rulers += `<td class="operator" data-index="${idx}">`;
             rulers += escHTML(operator || '');
             rulers += '</td>';
-            categories += `<td class="category" colspan="${colspan}" data-index="${idx}">`;
+
+            const cls = ['category'];
+            if (!category || category === '') {
+              cls.push('blank');
+            } else {
+              cls.push('assigned');
+            }
+
+            categories += `<td class="${cls.join(' ')}" colspan="${colspan}" `;
+            categories += `data-index="${idx}" onclick="derivEditableCat(this)">`;
             categories += escHTML(category || '');
             categories += '</td>';
             categories += '<td class="operator"></td>';
@@ -722,6 +862,137 @@
 
       html += '</table>';
       canvas.innerHTML = html;
+    }
+
+    function populateCCGCat() {
+      const editor = document.querySelector('.editor-body');
+      const content = editor.querySelectorAll('.sentence');
+
+      mappedCat = {};
+      content.forEach(snt => {
+        let words = snt.querySelectorAll('.word');
+        words = Array.from(words).map(w => w.innerText);
+        let categories = snt.querySelectorAll('.category');
+        categories = Array.from(categories).map(c => c.innerText);
+
+        const n = words.length;
+        for (let i = 0; i < n; i++) {
+          const word = words[i].toLowerCase();
+          const category = categories[i];
+
+          if (category !== '') {
+            if (!mappedCat[word]) {
+              mappedCat[word] = new Set();
+            }
+
+            mappedCat[word].add(category);
+          }
+        }
+      });
+    }
+
+    function autoAssignCCGCat() {
+      populateCCGCat();
+
+      const editor = document.querySelector('.editor-body');
+      const content = editor.querySelectorAll('.sentence');
+
+      let count = 0;
+      content.forEach(snt => {
+        const words = snt.querySelectorAll('.word');
+        const categories = snt.querySelectorAll('.category');
+
+        const n = words.length;
+        for (let i = 0; i < n; i++) {
+          const word = words[i];
+          const wrd = word.innerText.toLowerCase();
+          const category = categories[i].innerText;
+          if (category === '' && mappedCat[wrd] && mappedCat[wrd].size > 0) {
+            const form = word.parentElement.querySelector('form');
+            const input = form.parentElement.querySelector('input');
+            input.value = [...mappedCat[wrd]][0];
+
+            addCategory(form);
+            count += 1;
+          }
+        }
+      });
+
+      const msg = count > 0
+        ? `Successfully assigned ${count} words.`
+        : 'Nothing to assign.';
+      UIkit.notification(msg, { pos: 'bottom-right', timeout: 5000 });
+
+      populateCCGCat();
+    }
+
+    function trimAll(str) {
+      let ret = '';
+      const exclude = ['\n', '\r', ' ', ' ', '\t'];
+      for (let i = 0; i < str.length; i++) {
+        if (exclude.indexOf(str[i]) === -1) {
+          ret += str[i];
+        }
+      }
+
+      return ret;
+    }
+
+    function derivEditableCat(elm) {
+      const { row } = elm.parentElement.dataset;
+
+      const oldCat = elm.innerText;
+      const resetClasses = () => {
+        elm.classList.remove('assigned');
+        elm.classList.remove('blank');
+        elm.classList.remove('editable');
+      };
+
+      elm.contentEditable = true;
+      resetClasses();
+      elm.classList.add('editable');
+      elm.focus();
+
+      const exitEditableScene = (opts = { save: true }) => {
+        return () => {
+          elm.contentEditable = false;
+          resetClasses();
+
+          if (!opts.save) {
+            elm.innerText = oldCat;
+          } else {
+            elm.innerText = trimAll(elm.innerText);
+          }
+
+          if (row === '1') {
+            const table = document.querySelector('table.ccg-derivation');
+            const { uuid } = table.dataset;
+            const { index } = elm.dataset;
+
+            const section = document.querySelector(`.editor-body .section[data-uuid='${uuid}']`);
+            const form = section.querySelector(`div[data-index='${index}'] form`);
+            const input = form.querySelector('input');
+
+            input.value = elm.innerText;
+            addCategory(form);
+          }
+
+          if (elm.innerText === '') {
+            elm.classList.add('blank');
+          } else {
+            elm.classList.add('assigned');
+          }
+        };
+      };
+
+      elm.addEventListener('focusout', exitEditableScene());
+      elm.addEventListener('keyup', event => {
+        if (event.keyCode === 13) {
+          exitEditableScene()();
+        } else if (event.keyCode === 27) {
+          exitEditableScene({ save: false })();
+        }
+      });
     }
   </script>
 
