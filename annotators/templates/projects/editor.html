@@ -964,17 +964,19 @@
             elm.innerText = trimAll(elm.innerText);
           }
 
-          if (row === '1') {
-            const table = document.querySelector('table.ccg-derivation');
-            const { uuid } = table.dataset;
-            const { index } = elm.dataset;
+          const table = document.querySelector('table.ccg-derivation');
+          const { uuid } = table.dataset;
+          const { index } = elm.dataset;
 
+          if (row === '1') {
             const section = document.querySelector(`.editor-body .section[data-uuid='${uuid}']`);
             const form = section.querySelector(`div[data-index='${index}'] form`);
             const input = form.querySelector('input');
 
             input.value = elm.innerText;
             addCategory(form);
+          } else {
+            derivations[uuid][row][index].category = elm.innerText;
           }
 
           if (elm.innerText === '') {

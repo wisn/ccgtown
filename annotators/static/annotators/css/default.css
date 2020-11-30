@@ -243,6 +243,10 @@ main {
   z-index: 9999;
 }
 
+.uk-notification {
+  z-index: 10000;
+}
+
 .derivation-canvas {
   height: auto;
   margin: 0 auto;
@@ -285,8 +289,13 @@ main {
   cursor: pointer;
 }
 
+.ccg-derivation .category.blank:hover,
+.ccg-derivation .category.assigned:hover {
+  background-color: #52057b;
+}
+
 .ccg-derivation .category.editable {
-  border: 1px solid #bc6ff1;
+  border: 1px solid #52057b;
   cursor: text;
 }
 
