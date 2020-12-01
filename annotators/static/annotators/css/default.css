@@ -247,6 +247,10 @@ main {
   z-index: 10000;
 }
 
+#view-ccg-deriv-modal > div {
+  position: relative;
+}
+
 .derivation-canvas {
   height: auto;
   margin: 0 auto;
@@ -302,6 +306,7 @@ main {
 .ccg-derivation .operator.editable {
   border: 1px solid #52057b;
   cursor: text;
+  padding: 0 6px;
 }
 
 .ccg-derivation .category.editable:hover,
@@ -316,7 +321,34 @@ main {
   padding: 15px 0;
 }
 
+.ccg-derivation tr.actions > td {
+  padding-top: 16px;
+}
+
+.ccg-derivation tr.rulers td.blank {
+  background-color: #efefef;
+}
+
 .uk-notification-message {
   background-color: #52057b;
   color: #ffffff;
+}
+
+.uk-tooltip {
+  z-index: 10000;
+}
+
+#deriv-conf-modal {
+  z-index: 10001;
+}
+
+#deriv-conf-modal .editor,
+#deriv-conf-modal .editor .blank-state {
+  min-height: 72px;
+}
+
+#deriv-conf-modal .editor .blank-state > div {
+  height: 100%;
+  text-align: center;
+  width: 100%;
 }

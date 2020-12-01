@@ -446,7 +446,12 @@
 
   <div id="view-ccg-deriv-modal" class="uk-modal-full" uk-modal="esc-close: false">
     <div class="uk-modal-dialog uk-padding-small" uk-height-viewport>
-      <button class="uk-modal-close-full uk-close-large" type="button" uk-close></button>
+      <button
+        class="uk-modal-close-full uk-close-large"
+        type="button"
+        onclick="derivCloseConfRow()"
+        uk-close
+      ></button>
       <div class="uk-flex uk-flex-between uk-flex-middle">
         <h3 style="margin: 0">CCG Derivation</h3>
         <div class="changes-status" style="margin-right: 48px"></div>
@@ -518,6 +523,35 @@
             </button>
           </p>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="deriv-conf-modal" class="uk-flex-top" uk-modal="stack: true">
+    <div class="uk-modal-dialog uk-margin-auto-vertical uk-width-1-3">
+      <button class="uk-modal-close-default" type="button" uk-close></button>
+      <div class="uk-modal-header">
+        <h3>Configure Derivation</h3>
+      </div>
+      <div class="uk-modal-body uk-padding-small">
+        <div class="editor"></div>
+        <div style="padding: 16px"></div>
+        <div class="uk-flex uk-flex-between uk-flex-middle">
+          <div>
+            <button class="uk-button uk-button-default uk-modal-close">
+              Cancel
+            </button>
+          </div>
+          <div class="uk-flex uk-flex-between uk-flex-middle">
+            <button class="uk-button uk-button-default">
+              Add Entry
+            </button>
+            <div style="padding: 2px"></div>
+            <button class="uk-button uk-button-primary">
+              Save
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -795,6 +829,16 @@
       const numOfWords = sentences[uuid].words.length;
       let html = `<table class="ccg-derivation" data-uuid="${uuid}">`;
 
+      const addRowActions = () => {
+        let ret = '<td rowspan="2" class="actions">';
+        ret += '<a class="uk-icon-button" uk-icon="icon: cog" ';
+        ret += 'uk-tooltip="Configure derivation on this row." ';
+        ret += `onclick="derivConfRow(this, '${uuid}')" `;
+        ret += 'uk-toggle="#deriv-conf-modal"></a>';
+        ret += '</td>';
+        return ret;
+      };
+
       for (let i = 0; i < n; i++) {
         const row = derivs[i];
         if (i < 1) {
@@ -808,8 +852,21 @@
           let rulers = `<tr class="rulers" data-row="${i}">`;
           let categories = `<tr class="categories" data-row="${i}">`;
 
+          if (row.length === 0) {
+            rulers += '<td class="blank" rowspan="2" ';
+            rulers += `colspan="${numOfWords * 2}"></td>`;
+            rulers += addRowActions();
+            rulers += '</tr>';
+
+            categories += '</tr>';
+            html += rulers + categories;
+
+            continue;
+          }
+
           let idx = 0;
           let lastTo = 0;
+
           row.forEach(col => {
             const { from, to, category, operator } = col;
             const diff = from - lastTo;
@@ -867,11 +924,24 @@
             categories += `<td class="category" colspan="${colspan}"></td>`;
           }
 
+          if (i > 1) {
+            rulers += addRowActions();
+          }
+
           rulers += '</tr>';
           categories += '</tr>';
           html += rulers + categories;
         }
       }
+
+      html += '<tr class="actions uk-text-center">';
+      html += `<td colspan="${numOfWords * 2}">`;
+      html += '<a class="uk-icon-button" uk-icon="icon: plus" ';
+      html += 'uk-tooltip="Add new row." ';
+      html += `onclick="derivAddRow('${uuid}')"></a>`;
+      html += '</td>';
+      html += '<td></td>';
+      html += '</tr>';
 
       html += '</table>';
       canvas.innerHTML = html;
@@ -1110,6 +1180,29 @@
 
       elm.addEventListener('focusout', foutEvent);
       elm.addEventListener('keyup', kyupEvent);
+    }
+
+    function derivAddRow(uuid) {
+      derivations[uuid].push([]);
+      renderCCGDeriv(uuid);
+    }
+
+    function derivConfRow(elm, uuid) {
+      const modal = document.querySelector('#deriv-conf-modal');;
+      const editor = modal.querySelector('.editor');
+      const { row } = elm.parentElement.parentElement.dataset;
+
+      if (derivations[uuid][row].length === 0) {
+        let blank = '<div class="uk-flex uk-flex-middle blank-state">';
+        blank += '<div>There is nothing here.</div>';
+        blank += '</div>';
+        editor.innerHTML = blank;
+      }
+    }
+
+    function derivCloseConfRow() {
+      const box = document.querySelector('.conf-deriv-box');
+      box.style.display = 'none';
     }
   </script>
 
