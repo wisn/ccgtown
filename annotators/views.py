@@ -306,6 +306,7 @@ def add_changes(request, project_uuid):
         project = Project.objects.get(uuid=project_uuid)
         c_prj = changes['project']
         c_snt = changes['sentences']
+        c_drv = changes['derivations']
 
         if len(c_prj) > 0:
             project.updated_at = timezone.now()
@@ -344,6 +345,28 @@ def add_changes(request, project_uuid):
                     pass
             else:
                 msgs.append('There is no sentence updated. Internal server error.')
+
+        if len(c_drv) > 0:
+            count = 0
+            for uuid in c_drv:
+                # pylint: disable=no-member
+                sentence = Sentence.objects.get(uuid=uuid)
+                sentence.derivations = c_drv[uuid]
+                try:
+                    sentence.save()
+                    count += 1
+                except:
+                    pass
+
+            if count > 0:
+                msgs.append('Updated %s derivation(s).' % count)
+                try:
+                    project.updated_at = timezone.now()
+                    project.save()
+                except:
+                    pass
+            else:
+                msgs.append('There is no derivation update. Internal server error.')
 
         for msg in msgs:
             messages.add_message(request, messages.INFO, msg)

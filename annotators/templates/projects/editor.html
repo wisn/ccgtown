@@ -533,21 +533,26 @@
       <div class="uk-modal-header">
         <h3>Configure Derivation</h3>
       </div>
-      <div class="uk-modal-body uk-padding-small">
+      <div class="uk-modal-body uk-padding-remove">
         <div class="editor"></div>
-        <div style="padding: 16px"></div>
-        <div class="uk-flex uk-flex-between uk-flex-middle">
+        <div class="uk-flex uk-flex-between uk-flex-middle uk-padding-small">
           <div>
             <button class="uk-button uk-button-default uk-modal-close">
               Cancel
             </button>
           </div>
           <div class="uk-flex uk-flex-between uk-flex-middle">
-            <button class="uk-button uk-button-default">
+            <button
+              class="uk-button uk-button-default"
+              onclick="derivAddConfig()"
+            >
               Add Entry
             </button>
             <div style="padding: 2px"></div>
-            <button class="uk-button uk-button-primary">
+            <button
+              class="uk-button uk-button-primary"
+              onclick="derivSaveConf()"
+            >
               Save
             </button>
           </div>
@@ -831,7 +836,7 @@
 
       const addRowActions = () => {
         let ret = '<td rowspan="2" class="actions">';
-        ret += '<a class="uk-icon-button" uk-icon="icon: cog" ';
+        ret += '<a class="uk-icon-button cog" uk-icon="icon: cog" ';
         ret += 'uk-tooltip="Configure derivation on this row." ';
         ret += `onclick="derivConfRow(this, '${uuid}')" `;
         ret += 'uk-toggle="#deriv-conf-modal"></a>';
@@ -866,14 +871,20 @@
 
           let idx = 0;
           let lastTo = 0;
+          row.sort((l, r) => l.from - r.from);
 
           row.forEach(col => {
             const { from, to, category, operator } = col;
             const diff = from - lastTo;
 
             if (diff > 1) {
-              rulers += `<td class="ruler" colspan="${diff * 2}"></td>`;
-              categories += `<td class="category" colspan="${diff * 2}"></td>`;
+              let colspan = diff * 2;
+              if (row.length > 1 && idx > 0) {
+                colspan -= 2;
+              }
+
+              rulers += `<td class="ruler" colspan="${colspan}"></td>`;
+              categories += `<td class="category" colspan="${colspan}"></td>`;
             } else if (from === 1 && from !== to) {
               rulers += `<td class="ruler" colspan="2"></td>`;
               categories += `<td class="category" colspan="2"></td>`;
@@ -1185,24 +1196,279 @@
     function derivAddRow(uuid) {
       derivations[uuid].push([]);
       renderCCGDeriv(uuid);
+
+      const mutableDeriv = JSON.stringify(derivations[uuid]);
+      const origDeriv = JSON.stringify(sentences[uuid].derivations);
+      if (mutableDeriv !== origDeriv) {
+        changes.derivations[uuid] = JSON.parse(JSON.stringify(derivations[uuid]));
+      } else {
+        if (changes.derivations[uuid]) {
+          delete changes.derivations[uuid];
+        }
+      }
+
+      isSavable();
     }
 
+    let derivConfigs = [];
+
     function derivConfRow(elm, uuid) {
-      const modal = document.querySelector('#deriv-conf-modal');;
+      const modal = document.querySelector('#deriv-conf-modal');
+      modal.dataset.uuid = uuid;
       const editor = modal.querySelector('.editor');
       const { row } = elm.parentElement.parentElement.dataset;
+      modal.dataset.row = row;
 
       if (derivations[uuid][row].length === 0) {
-        let blank = '<div class="uk-flex uk-flex-middle blank-state">';
-        blank += '<div>There is nothing here.</div>';
-        blank += '</div>';
-        editor.innerHTML = blank;
+        editor.innerHTML = derivBlankConf();
+        return;
       }
+
+      const idx = parseInt(row, 10);
+      derivConfigs = JSON.parse(JSON.stringify(derivations[uuid][idx]));
+
+      editor.innerHTML = derivRenderConf();
+    }
+
+    function derivBlankConf() {
+      let blank = '<div class="uk-flex uk-flex-middle blank-state">';
+      blank += '<div>';
+      blank += 'There is nothing here.<br>';
+      blank += 'If this row is unneeded, you better ';
+      blank += `<a onclick="derivRemoveRow()">remove this row</a>.`;
+      blank += '</div>';
+      blank += '</div>';
+      return blank;
+    }
+
+    function derivRenderConf() {
+      let html = '';
+      let idx = 0;
+
+      derivConfigs.forEach(deriv => {
+        const { from, to, category, operator } = deriv;
+        html += '<div class="uk-flex uk-flex-between uk-flex-middle config">';
+        html += '<div class="uk-flex uk-flex-column">';
+        html += '<div class="uk-flex uk-flex-between uk-flex-middle">';
+        html += derivRenderWordSelect(from);
+        html += '<div style="padding: 4px"></div>';
+        html += derivRenderWordSelect(to, from, 'to');
+        html += '<div style="padding: 4px"></div>';
+        html += `<input class="uk-input operator" value="${operator || ''}" `;
+        html += 'placeholder="Operator">';
+        html += '</div>';
+        html += '<div style="padding: 4px"></div>';
+        html += `<input class="uk-input category" value="${category || ''}" `;
+        html += 'placeholder="Category">';
+        html += '</div>';
+        html += '<div class="uk-padding-small">';
+        html += '<button uk-icon="icon: trash; ratio: 1.5" ';
+        html += 'uk-tooltip="Remove this derivation." ';
+        html += `onclick="derivConfRemove(${idx})"></button>`;
+        html += '</div>';
+        html += '</div>';
+
+        idx += 1;
+      });
+
+      return html;
+    }
+
+    function derivRenderWordSelect(idx, from = 0, type = 'from') {
+      const modal = document.querySelector('#deriv-conf-modal');
+      const { uuid } = modal.dataset;
+      const { words } = sentences[uuid];
+      const start = type === 'to' ? from : 0;
+
+      let html = `<select class="uk-select ${type}"`;
+      if (type === 'from') {
+        html += ' onchange="derivUpdateWordSelect(this)"';
+      }
+      html += '>';
+      let i = start;
+
+      words.slice(start).forEach(w => {
+        html += `<option value="${i}"`;
+        if (i === idx) {
+          html += ' selected';
+        }
+        html += `>${w}</option>`;
+        i += 1;
+      });
+
+      html += '</select>';
+      return html;
+    }
+
+    function derivUpdateWordSelect(elm) {
+      const modal = document.querySelector('#deriv-conf-modal');
+      const { uuid } = modal.dataset;
+      const { words } = sentences[uuid];
+      const select = elm.parentElement.querySelector('select.to');
+      const start = parseInt(elm.value, 10);
+
+      let html = '';
+      let i = start;
+
+      words.slice(start).forEach(w => {
+        html += `<option value=${i}>${w}</option>`;
+        i += 1;
+      });
+
+      select.innerHTML = html;
+    }
+
+    function derivAddConfig() {
+      derivConfigs.push({});
+
+      const modal = document.querySelector('#deriv-conf-modal');;
+      const editor = modal.querySelector('.editor');
+      editor.innerHTML = derivRenderConf();
+    }
+
+    function derivConfRemove(idx) {
+      derivConfigs = derivConfigs.filter((_, i) => i !== idx);
+
+      const modal = document.querySelector('#deriv-conf-modal');;
+      const editor = modal.querySelector('.editor');
+
+      if (derivConfigs.length === 0) {
+        editor.innerHTML = derivBlankConf();
+      } else {
+        editor.innerHTML = derivRenderConf();
+      }
+    }
+
+    function derivSaveConf() {
+      const modal = document.querySelector('#deriv-conf-modal');
+      const { uuid, row } = modal.dataset;
+      const configs = modal.querySelectorAll('.editor .config');
+
+      let i = 1;
+      const n = sentences[uuid].words.length;
+      const msgs = [];
+
+      let overlap = false;
+      const coord = [];
+      configs.forEach(conf => {
+        let from = conf.querySelector('select.from').value;
+        if (from === '') {
+          return;
+        }
+
+        let to = conf.querySelector('select.to').value;
+        if (to === 'to') {
+          return;
+        }
+
+        from = parseInt(from, 10);
+        to = parseInt(to, 10);
+
+        coord.push([from, to]);
+      });
+
+      coord.sort();
+      for (let j = 1; j < coord.length; j++) {
+        if (coord[j][0] <= coord[j - 1][1]) {
+          msgs.push('Derivation overlapping. Please review.')
+          overlap = true;
+          break;
+        }
+      }
+
+      configs.forEach(conf => {
+        if (overlap) {
+          return;
+        };
+
+        const from = parseInt(conf.querySelector('select.from').value, 10);
+        const to = parseInt(conf.querySelector('select.to').value, 10);
+        const category = trimAll(conf.querySelector('input.category').value);
+        const operator = trimAll(conf.querySelector('input.operator').value);
+
+        let valid = true;
+
+        if (category === '') {
+          msgs.push(`In the #${i} config, category is empty.`);
+          valid = false;
+        }
+
+        if (operator === '') {
+          msgs.push(`In the #${i} config, operator is empty.`);
+          valid = false;
+        }
+
+        if (valid) {
+          const config = { to, from, category, operator };
+          derivConfigs[i - 1] = config;
+        }
+
+        i += 1;
+      });
+
+      if (msgs.length > 0) {
+        msgs.forEach(msg => {
+          UIkit.notification(msg, { pos: 'bottom-right', timeout: 5000 });
+        });
+      } else {
+        const derivStr = JSON.stringify(derivConfigs);
+        if (derivStr === JSON.stringify(derivations[uuid][row])) {
+          UIkit.modal(modal).hide();
+          renderCCGDeriv(uuid);
+          return;
+        }
+
+        derivations[uuid][row] = JSON.parse(derivStr);
+
+        const mutableDeriv = JSON.stringify(derivations[uuid]);
+        const origDeriv = JSON.stringify(sentences[uuid].derivations);
+        if (mutableDeriv !== origDeriv) {
+          changes.derivations[uuid] = JSON.parse(JSON.stringify(derivations[uuid]));
+        } else {
+          if (changes.derivations[uuid]) {
+            delete changes.derivations[uuid];
+          }
+        }
+
+        derivConfigs = [];
+        isSavable();
+
+        UIkit.modal(modal).hide();
+        renderCCGDeriv(uuid);
+      }
+    }
+
+    function derivRemoveRow() {
+      const modal = document.querySelector('#deriv-conf-modal');
+      const { uuid, row } = modal.dataset;
+      const idx = parseInt(row, 10);
+
+      const derivs = derivations[uuid];
+      derivations[uuid] = derivs.slice(0, idx).concat(derivs.slice(idx + 1));
+
+      const mutableDeriv = JSON.stringify(derivations[uuid]);
+      const origDeriv = JSON.stringify(sentences[uuid].derivations);
+      if (mutableDeriv !== origDeriv) {
+        changes.derivations[uuid] = JSON.parse(JSON.stringify(derivations[uuid]));
+      } else {
+        if (changes.derivations[uuid]) {
+          delete changes.derivations[uuid];
+        }
+      }
+
+      isSavable();
+
+      UIkit.modal(modal).hide();
+      renderCCGDeriv(uuid);
     }
 
     function derivCloseConfRow() {
       const box = document.querySelector('.conf-deriv-box');
-      box.style.display = 'none';
+      if (box) {
+        box.style.display = 'none';
+      }
+
+      derivConfigs = [];
     }
   </script>
 

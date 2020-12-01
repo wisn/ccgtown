@@ -329,13 +329,17 @@ main {
   background-color: #efefef;
 }
 
+.uk-notification {
+  z-index: 10004;
+}
+
 .uk-notification-message {
   background-color: #52057b;
   color: #ffffff;
 }
 
 .uk-tooltip {
-  z-index: 10000;
+  z-index: 10004;
 }
 
 #deriv-conf-modal {
@@ -351,4 +355,16 @@ main {
   height: 100%;
   text-align: center;
   width: 100%;
+}
+
+#deriv-conf-modal .config {
+  padding: 12px 16px;
+}
+
+#deriv-conf-modal .config:nth-child(2n) {
+  background-color: #efefef;
+}
+
+#deriv-conf-modal .config input {
+  text-align: center;
 }
