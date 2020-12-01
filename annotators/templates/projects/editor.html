@@ -885,7 +885,8 @@
 
               rulers += `<td class="ruler" colspan="${colspan}"></td>`;
               categories += `<td class="category" colspan="${colspan}"></td>`;
-            } else if (from === 1 && from !== to) {
+            }
+            else if (from === 1 && i > 1) {
               rulers += `<td class="ruler" colspan="2"></td>`;
               categories += `<td class="category" colspan="2"></td>`;
             }
