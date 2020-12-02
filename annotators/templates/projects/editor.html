@@ -1075,6 +1075,27 @@
             const form = section.querySelector(`div[data-index='${index}'] form`);
             const input = form.querySelector('input');
 
+            const idx = parseInt(index, 10);
+            if (derivations[uuid] && derivations[uuid][1] && derivations[uuid][1][idx]) {
+              if (elm.innerText === '') {
+                derivations[uuid][1][idx].category = null;
+              } else {
+                derivations[uuid][1][idx].category = elm.innerText;
+              }
+
+              const mutableDeriv = JSON.stringify(derivations[uuid]);
+              const origDeriv = JSON.stringify(sentences[uuid].derivations);
+              if (mutableDeriv !== origDeriv) {
+                changes.derivations[uuid] = JSON.parse(JSON.stringify(derivations[uuid]));
+              } else {
+                if (changes.derivations[uuid]) {
+                  delete changes.derivations[uuid];
+                }
+              }
+
+              isSavable();
+            }
+
             input.value = elm.innerText;
             addCategory(form);
           } else {
