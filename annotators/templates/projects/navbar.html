@@ -1,0 +1,45 @@
+<nav class="bg-1 topnav uk-navbar-container uk-navbar-transparent" uk-navbar>
+  <div class="uk-navbar-left">
+    <a class="fg-4 uk-navbar-item uk-logo" href="/projects/">CCGtown</a>
+    <ul class="uk-navbar-nav">
+      <li>
+        <a
+          href="/projects/"
+          {% if page.title == 'Projects' %}class="active"{% endif %}
+        >Projects</a>
+      </li>
+    </ul>
+  </div>
+  <div class="uk-navbar-right">
+    <ul class="uk-navbar-nav topnav-icons">
+      <li>
+        <a class="uk-padding-remove icon">
+          <span class="uk-padding-small uk-border-circle hvbg-4 hvfg-1" uk-icon="icon: user"></span>
+        </a>
+        <div uk-drop="offset: -66; mode: click" class="dropmenu">
+          <div class="uk-card uk-card-body uk-card-default uk-padding-small">
+            <div class="uk-flex uk-flex-between uk-flex-middle">
+              <div>
+                <div class="uk-flex uk-flex-column uk-flex-left">
+                  <div>{{ user.email }}</div>
+                  <div>
+                    <a class="logout" href="/logout/">Logout</a>
+                  </div>
+                </div>
+              </div>
+              <div style="padding: 8px"></div>
+              <div>
+                <a class="drop-toggler uk-padding-remove uk-drop-close hvfg-4">
+                  <span
+                    class="uk-padding-small uk-border-circle fg-5 hvbg-1 hvfg-4"
+                    uk-icon="icon: user"
+                  ></span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </div>
+</nav>

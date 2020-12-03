@@ -1,0 +1,226 @@
+{% extends "default.html" %}
+
+{% block body %}
+  {% include "projects/navbar.html" %}
+
+  <main class="entire-screen">
+    <div class="uk-container">
+      <div class="uk-card uk-card-default">
+        <div class="uk-card-header">
+          <div class="uk-flex uk-flex-between uk-flex-middle" uk-grid>
+            <div>
+              <h2>Projects</h2>
+            </div>
+            <div class="">
+              <ul class="uk-iconnav">
+                <li>
+                  <a
+                    uk-icon="icon: plus; ratio: 1.25"
+                    uk-tooltip="Create new project."
+                    uk-toggle="target: #add-project-modal"
+                  ></a>
+                </li>
+                <li>
+                  <a
+                    href="javascript:;"
+                    uk-icon="icon: cloud-upload; ratio: 1.25"
+                    uk-tooltip="Import CCGbank."
+                  ></a>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="uk-card-body uk-padding-small" style="min-height: calc(100vh - 260px)">
+          {% if projects|length == 0 %}
+            <div
+              class="uk-flex uk-flex-center uk-flex-middle"
+              style="min-height: calc(100vh - 260px)"
+            >
+              <div>
+                <span uk-icon="icon: folder; ratio: 3"></span>
+              </div>
+              <div class="uk-padding-small"></div>
+              <div>
+                <p class="uk-margin-remove">
+                  There is no project here.<br>
+                  You may add a new project by clicking
+                  <a uk-icon="icon: plus" uk-toggle="#add-project-modal"></a>
+                  icon.<br>
+                  You may also import CCGbank by clicking
+                  <span uk-icon="icon: cloud-upload"></span> icon.
+                </p>
+              </div>
+            </div>
+          {% else %}
+            <div class="uk-overflow-auto project-list">
+              <table
+                class="uk-table uk-table-hover uk-table-middle uk-table-divider"
+              >
+                <thead>
+                  <tr>
+                    <!-- <th class="uk-table-shrink"></th> -->
+                    <th class="uk-table-expand">Project Name</th>
+                    <th class="uk-table-shrink">
+                      <div align="center">Status</div>
+                    </th>
+                    <th class="uk-width-1-5">
+                      <div align="center">Created</div>
+                    </th>
+                    <th class="uk-width-1-5">
+                      <div align="center">Last Modified</div>
+                    </th>
+                    <th class="uk-width-small">
+                      <div align="center">Actions</div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% load tz %}
+                  {% get_current_timezone as T_Z %}
+                  {% for project in projects %}
+                    <tr>
+                      <!-- <td><input class="uk-checkbox" type="checkbox"></td> -->
+                      <td class="uk-table-link">
+                        <a href="/projects/{{ project.uuid }}/">
+                          {{ project.name }}
+                        </a>
+                      </td>
+                      <td>
+                        <div align="center" class="uk-text-small">
+                          {% if project.status == 0 %}
+                            <span class="uk-label">Just Created</span>
+                          {% elif project.status == 1 %}
+                            <span class="uk-label uk-label-warning">
+                              In Progress
+                            </span>
+                          {% elif project.status == 2 %}
+                            <span class="uk-label uk-label-success">
+                              Finished
+                            </span>
+                          {% elif project.status == 3 %}
+                            <span class="uk-label uk-label-danger">
+                              Dropped
+                            </span>
+                          {% else %}
+                            <span class="uk-label">Unknown</span>
+                          {% endif %}
+                        </div>
+                      </td>
+                      <td>
+                        <div align="center" class="uk-text-small">
+                          {{ project.created_at|localtime }}
+                          {{ T_Z }}
+                        </div>
+                      </td>
+                      <td>
+                        <div align="center" class="uk-text-small">
+                          {{ project.updated_at|localtime }}
+                          {{ T_Z }}
+                        </div>
+                      </td>
+                      <td>
+                        <div align="center">
+                          <a
+                            href="/projects/{{ project.uuid }}/"
+                            uk-icon="icon: file-edit"
+                            uk-tooltip="Edit this project."
+                          ></a>
+                          <a
+                            uk-icon="icon: trash"
+                            uk-tooltip="Remove this project."
+                            uk-toggle="#remove-project-modal"
+                            onclick="confirmRemPrj('{{ project.uuid }}', '{{ project.name }}')"
+                          ></a>
+                        </div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="add-project-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-margin-auto-vertical uk-width-1-3">
+      <button class="uk-modal-close-default" type="button" uk-close></button>
+      <div class="uk-modal-header">
+        <h3>Create New Project</h3>
+      </div>
+      <div class="uk-modal-body uk-padding-small">
+        <form method="POST" action="/projects/">
+          {% csrf_token %}
+          <div>
+            <input
+              name="project_name"
+              class="uk-input uk-width-1-1"
+              type="text"
+              placeholder="Project Name"
+            >
+          </div>
+          <p class="uk-text-right uk-margin-remove-bottom">
+            <button
+              class="uk-button uk-button-default uk-modal-close"
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              class="uk-button uk-button-primary"
+              type="submit"
+            >
+              Create Project
+            </button>
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="remove-project-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-margin-auto-vertical uk-width-1-3">
+      <button class="uk-modal-close-default" type="button" uk-close></button>
+      <div class="uk-modal-header">
+        <h3>Remove Project</h3>
+      </div>
+      <div class="uk-modal-body uk-padding-small">
+        <form method="POST">
+          {% csrf_token %}
+          <div>
+            Are you sure want to remove
+            "<strong class="project-name"></strong>"?
+          </div>
+          <p class="uk-text-right uk-margin-remove-bottom">
+            <button
+              class="uk-button uk-button-default uk-modal-close"
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              class="uk-button uk-button-danger"
+              type="submit"
+            >
+              Remove Project
+            </button>
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    function confirmRemPrj(pid, name) {
+      const form = document.querySelector('#remove-project-modal form');
+      form.action = `/projects/${pid}/remove/`;
+      const nameElm = document.querySelector('#remove-project-modal .project-name');
+      nameElm.innerHTML = name;
+    }
+  </script>
+
+  {% include 'footer.html' %}
+{% endblock body %}

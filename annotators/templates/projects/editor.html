@@ -1,0 +1,1526 @@
+{% extends "default.html" %}
+
+{% block body %}
+  {% include "projects/navbar.html" %}
+
+  <main class="entire-screen uk-padding-remove-top">
+    <div class="uk-section uk-section-default uk-section-xsmall editor-header">
+      <div style="padding: 0 15px">
+        <div class="uk-flex uk-flex-between uk-flex-middle">
+          <div class="uk-flex uk-flex-left uk-flex-middle">
+            <a
+              href="/projects/"
+              uk-icon="icon: arrow-left; ratio: 1.25"
+              class="uk-icon-button"
+              uk-tooltip="Back to project list."
+            ></a>
+            <div style="padding: 8px"></div>
+            {{ project.name }}
+            <!-- <input
+              type="text"
+              class="uk-input uk-form-blank uk-width-auto"
+              value="{{ project.name }}"
+            > -->
+            <div style="padding: 8px"></div>
+            &mdash;
+            <div style="padding: 8px"></div>
+            <span style="color: #ababab">
+              last updated at
+              <strong>
+                {% load tz %}
+                {{ project.updated_at|localtime }}
+                {% get_current_timezone as T_Z %}
+                {{ T_Z }}
+              </strong>
+            </span>
+          </div>
+          <div class="uk-flex uk-flex-left uk-flex-middle">
+            <div class="changes-status"></div>
+            <div style="padding: 4px"></div>
+            <form method="POST" action="/projects/{{ project.uuid }}/changes/">
+              {% csrf_token %}
+              <textarea style="display: none" name="changes"></textarea>
+              <button
+                class="uk-button uk-button-default save-button"
+                type="submit"
+              >
+                Save
+              </button>
+            </form>
+            <div style="padding: 4px"></div>
+            <div class="uk-inline">
+              <button
+                class="uk-button uk-button-default"
+                style="padding: 0 4px"
+                uk-icon="icon: more-vertical"
+              >
+              </button>
+              <div
+                class="uk-padding-remove"
+                uk-dropdown="delay-hide: 0; mode: click; pos: bottom-left"
+              >
+                <ul class="uk-nav uk-dropdown-nav">
+                  <li
+                    class="uk-nav-header uk-text-center"
+                    style="border: 1px solid #efefef"
+                  >
+                    <strong>
+                      More Actions
+                    </strong>
+                  </li>
+                  <li>
+                    <button
+                      class="uk-button uk-button-default uk-button-small uk-width-1-1"
+                      uk-toggle="#auto-assign-modal"
+                    >
+                      Auto-assign Category
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      class="uk-button uk-button-danger uk-button-small uk-width-1-1"
+                      uk-toggle="#remove-project-modal"
+                    >
+                      Remove Project
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <!-- <div style="padding: 4px"></div>
+            <a
+              class="uk-icon-button"
+              uk-icon="icon: plus"
+              uk-tooltip="Add new sentence."
+              uk-toggle="#add-sentences-modal"
+            ></a>
+            <a
+              class="uk-icon-button"
+              uk-icon="icon: settings"
+              uk-tooltip="Open project properties."
+            ></a> -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uk-padding-small"></div>
+
+    <div style="padding: 0 15px">
+      <div class="uk-flex uk-flex-between">
+        <div class="uk-width-expand">
+          <div
+            class="uk-card uk-card-default uk-card-body uk-padding-remove editor-body"
+          >
+            {% if sentences|length == 0 %}
+              <div
+                class="uk-flex uk-flex-center uk-flex-middle"
+                style="min-height: calc(100vh - 280px)"
+              >
+                <div>
+                  <span uk-icon="icon: folder; ratio: 3"></span>
+                </div>
+                <div class="uk-padding-small"></div>
+                <div>
+                  <p class="uk-margin-remove">
+                    There is no sentence here.<br>
+                    You may add a new project by clicking
+                    <a uk-icon="icon: plus" uk-toggle="#add-sentences-modal"></a>
+                    icon.<br>
+                  </p>
+                </div>
+              </div>
+            {% else %}
+              {% for sentence in sentences %}
+                <div
+                  class="uk-flex uk-flex-middle uk-flex-middle section uk-inline"
+                  data-uuid="{{ sentence.uuid }}"
+                >
+                  <div class="line-number uk-padding-small uk-height-auto uk-width-auto">
+                    {{ forloop.counter }}
+                  </div>
+                  <div class="sentence uk-padding-small uk-width-expand">
+                    <div class="uk-flex uk-flex-left uk-flex-wrap">
+                      {% for snt in sentence.body %}
+                        <div
+                          class="uk-flex uk-flex-column uk-text-center"
+                          data-index="{{ forloop.counter0 }}"
+                        >
+                          <div class="uk-inline">
+                            <div class="word" onclick="selectCategory(this)">
+                              {{ snt.word }}
+                            </div>
+                            <div
+                              uk-drop="mode: click; pos: bottom-center; offset: 2"
+                            >
+                              <div class="uk-card uk-card-body uk-card-default uk-padding-small">
+                                <div class="uk-text-center">
+                                  <span style="font-size: 11pt">
+                                    Category for
+                                    <strong><u>{{ snt.word }}</u></strong>:
+                                  </span>
+                                  <div class="uk-margin-small"></div>
+                                  <form onsubmit="return addCategory(this)">
+                                    <div class="uk-inline">
+                                      <button
+                                        class="uk-form-icon uk-form-icon-flip"
+                                        uk-icon="icon: plus"
+                                        type="submit"
+                                      ></button>
+                                      <input
+                                        type="text"
+                                        class="uk-input uk-text-center"
+                                        value="{{ snt.category|default:'' }}"
+                                        placeholder="e.g. S/NP"
+                                        autofocus
+                                      >
+                                    </div>
+                                  </form>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="marker"></div>
+                          <div class="category">
+                            {% if snt.category %}{{ snt.category }}{% endif %}
+                          </div>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                  <div class="uk-position-top-right">
+                    <div class="uk-inline" style="padding: 4px 4px 0 0">
+                      <a class="uk-icon-button actions" uk-icon="icon: more"></a>
+                      <div
+                        class="uk-padding-remove"
+                        uk-dropdown="delay-hide: 0; offset: -34; pos: left-top"
+                      >
+                        <ul class="uk-nav uk-dropdown-nav">
+                          <li
+                            class="uk-nav-header uk-text-center"
+                            style="border: 1px solid #efefef"
+                          >
+                            <strong>
+                              More Actions
+                            </strong>
+                          </li>
+                          <li>
+                            <button
+                              class="uk-button uk-button-default uk-button-small uk-width-1-1"
+                              onclick="confirmGenCCGDeriv('{{ sentence.uuid }}')"
+                              uk-toggle="#gen-ccg-deriv-modal"
+                            >
+                              Generate CCG Derivation
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              class="uk-button uk-button-default uk-button-small uk-width-1-1"
+                              onclick="renderCCGDeriv('{{ sentence.uuid }}')"
+                              uk-toggle="#view-ccg-deriv-modal"
+                            >
+                              View CCG Derivation
+                            </button>
+                          </li>
+                          <li>
+                            <button
+                              class="uk-button uk-button-danger uk-button-small uk-width-1-1"
+                              onclick="confirmRemoveSentence('{{ sentence.uuid }}')"
+                              uk-toggle="#remove-sentence-modal"
+                            >
+                              Remove Sentence
+                            </button>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <hr class="uk-margin-remove">
+              {% endfor %}
+            {% endif %}
+          </div>
+          <button
+            class="uk-button uk-button-default uk-width-1-1 bg-4 hvbg-4"
+            style="border: 0; border-top: 1px solid #efefef"
+            uk-toggle="#add-sentences-modal"
+          >
+            <span uk-icon="icon: plus"></span>
+            Add Sentences
+          </button>
+        </div>
+        <div class="uk-padding-small"></div>
+        <div class="uk-width-1-4">
+          <div
+            class="uk-card uk-card-small uk-card-default uk-card-body uk-margin-small-bottom"
+          >
+            <div class="uk-flex uk-flex-between uk-flex-middle">
+              <h4 class="uk-margin-remove">Project Detail</h4>
+              <!-- <a uk-icon="icon: refresh" uk-tooltip="Update project detail."></a> -->
+            </div>
+            <div class="uk-margin-small">
+              <label class="uk-form-label" for="project-name">
+                Project Name
+              </label>
+              <div class="uk-form-controls">
+                <input
+                  type="text"
+                  id="project-name"
+                  class="uk-input"
+                  value="{{ project.name }}"
+                  placeholder="(insert project name)"
+                  onchange="updateName(this)"
+                >
+              </div>
+            </div>
+            <div class="uk-margin-small">
+              <label class="uk-form-label" for="project-name">
+                Project Status
+              </label>
+              <div class="uk-form-controls">
+                <select
+                  class="uk-select"
+                  id="project-status"
+                  onchange="updateStatus(this)"
+                >
+                  <option
+                    value="0"
+                    {% if project.status == 0 %} selected {% endif %}
+                  >
+                    Just Created
+                  </option>
+                  <option
+                    value="1"
+                    {% if project.status == 1 %} selected {% endif %}
+                  >
+                    In Progress
+                  </option>
+                  <option
+                    value="2"
+                    {% if project.status == 2 %} selected {% endif %}
+                  >
+                    Finished
+                  </option>
+                  <option
+                    value="3"
+                    {% if project.status == 3 %} selected {% endif %}
+                  >
+                    Dropped
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div
+            class="uk-card uk-card-small uk-card-default uk-card-body uk-margin-small-bottom"
+          >
+            <div class="uk-flex uk-flex-between uk-flex-middle">
+              <h4 class="uk-margin-remove">Automation Rules</h4>
+              <!-- <a uk-icon="icon: refresh" uk-tooltip="Update CCG automation rules."></a> -->
+            </div>
+            <div class="uk-margin-small">
+              <textarea
+                class="uk-textarea"
+                placeholder="(insert CCG lexicon rules)"
+                style="min-height: 100px"
+                onchange="updateRules(this)"
+              >{{ project.rules }}</textarea>
+            </div>
+          </div>
+          <div
+            class="uk-card uk-card-small uk-card-default uk-card-body uk-margin-small-bottom"
+          >
+            <div class="uk-flex uk-flex-between uk-flex-middle">
+              <h4 class="uk-margin-remove">CCG Lexicons</h4>
+            </div>
+            <div
+              class="uk-margin-small ccg-lexicons"
+              style="min-height: 80px"
+            ></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="add-sentences-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-margin-auto-vertical uk-width-1-2">
+      <button class="uk-modal-close-default" type="button" uk-close></button>
+      <div class="uk-modal-header">
+        <h3>Add New Sentences</h3>
+      </div>
+      <div class="uk-modal-body uk-padding-small">
+        <form method="POST" action="/projects/{{ project.uuid }}/sentences/">
+          {% csrf_token %}
+          <textarea
+            name="sentences"
+            class="uk-textarea uk-width-1-1"
+            placeholder="This is an example sentence. You may add more."
+            style="min-height: 200px"
+          ></textarea>
+          <p class="uk-text-right uk-margin-remove-bottom">
+            <button
+              class="uk-button uk-button-default uk-modal-close"
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              class="uk-button uk-button-primary"
+              type="submit"
+            >
+              Add Sentences
+            </button>
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="remove-sentence-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-margin-auto-vertical uk-width-1-3">
+      <button class="uk-modal-close-default" type="button" uk-close></button>
+      <div class="uk-modal-header">
+        <h3>Remove Sentence</h3>
+      </div>
+      <div class="uk-modal-body uk-padding-small">
+        <form method="POST">
+          {% csrf_token %}
+          <div>
+            Are you sure want to remove
+            "<strong class="sentence"></strong>" sentence?
+          </div>
+          <p class="uk-text-right uk-margin-remove-bottom">
+            <button
+              class="uk-button uk-button-default uk-modal-close"
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              class="uk-button uk-button-danger"
+              type="submit"
+            >
+              Remove Sentence
+            </button>
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="gen-ccg-deriv-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-margin-auto-vertical uk-width-1-3">
+      <button class="uk-modal-close-default" type="button" uk-close></button>
+      <div class="uk-modal-header">
+        <h3>Generate CCG Derivation</h3>
+      </div>
+      <div class="uk-modal-body uk-padding-small">
+        <form method="POST">
+          {% csrf_token %}
+          <div>
+            Are you sure want to generate CCG derivation for
+            "<strong class="sentence"></strong>" sentence?<br>
+            <br>
+            Generated CCG derivation will replace the current
+            derivation into a new one.
+          </div>
+          <p class="uk-text-right uk-margin-remove-bottom">
+            <button
+              class="uk-button uk-button-default uk-modal-close"
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              class="uk-button uk-button-danger"
+              type="submit"
+            >
+              Generate Now
+            </button>
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-ccg-deriv-modal" class="uk-modal-full" uk-modal="esc-close: false">
+    <div class="uk-modal-dialog uk-padding-small" uk-height-viewport>
+      <button
+        class="uk-modal-close-full uk-close-large"
+        type="button"
+        onclick="derivCloseConfRow()"
+        uk-close
+      ></button>
+      <div class="uk-flex uk-flex-between uk-flex-middle">
+        <h3 style="margin: 0">CCG Derivation</h3>
+        <div class="changes-status" style="margin-right: 48px"></div>
+      </div>
+      <div class="derivation-canvas"></div>
+    </div>
+  </div>
+
+  <div id="auto-assign-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-margin-auto-vertical uk-width-1-3">
+      <button class="uk-modal-close-default" type="button" uk-close></button>
+      <div class="uk-modal-header">
+        <h3>Auto-assign Category</h3>
+      </div>
+      <div class="uk-modal-body uk-padding-small">
+        <div>
+          You are about to run
+          <strong>auto-assign CCG category</strong>.
+          Meaning that any words without annotation will be
+          assigned with a new annotation if the same words
+          are already annotated before.<br>
+          <br>
+          If there are more than one annotations, we will
+          only choose one.
+        </div>
+        <p class="uk-text-right uk-margin-remove-bottom">
+          <button
+            class="uk-button uk-button-default uk-modal-close"
+            type="button"
+          >
+            Cancel
+          </button>
+          <button
+            class="uk-button uk-button-primary uk-modal-close"
+            onclick="autoAssignCCGCat()"
+          >
+            Auto-assign Now
+          </button>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div id="remove-project-modal" class="uk-flex-top" uk-modal>
+    <div class="uk-modal-dialog uk-margin-auto-vertical uk-width-1-3">
+      <button class="uk-modal-close-default" type="button" uk-close></button>
+      <div class="uk-modal-header">
+        <h3>Remove Project</h3>
+      </div>
+      <div class="uk-modal-body uk-padding-small">
+        <form method="POST" action="/projects/{{ project.uuid }}/remove/">
+          {% csrf_token %}
+          <div>
+            Are you sure want to remove
+            "<strong>{{ project.name }}</strong>"?
+          </div>
+          <p class="uk-text-right uk-margin-remove-bottom">
+            <button
+              class="uk-button uk-button-default uk-modal-close"
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              class="uk-button uk-button-danger"
+              type="submit"
+            >
+              Remove Project
+            </button>
+          </p>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="deriv-conf-modal" class="uk-flex-top" uk-modal="stack: true">
+    <div class="uk-modal-dialog uk-margin-auto-vertical uk-width-1-3">
+      <button
+        class="uk-modal-close-default"
+        type="button"
+        onclick="derivCloseConfRow()"
+        uk-close
+      ></button>
+      <div class="uk-modal-header">
+        <h3>Configure Derivation</h3>
+      </div>
+      <div class="uk-modal-body uk-padding-remove">
+        <div class="editor"></div>
+        <div class="uk-flex uk-flex-between uk-flex-middle uk-padding-small">
+          <div>
+            <button
+              class="uk-button uk-button-default uk-modal-close"
+              onclick="derivCloseConfRow()"
+            >
+              Cancel
+            </button>
+          </div>
+          <div class="uk-flex uk-flex-between uk-flex-middle">
+            <button
+              class="uk-button uk-button-default"
+              onclick="derivAddConfig()"
+            >
+              Add Entry
+            </button>
+            <div style="padding: 2px"></div>
+            <button
+              class="uk-button uk-button-primary"
+              onclick="derivSaveConf()"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    const project = {
+      uuid: '{{ project.uuid }}',
+      name: '{{ project.name }}',
+      status: parseInt('{{ project.status }}', 10),
+      rules: '{{ project.rules }}',
+    };
+
+    const catCounter = {};
+    const raw = `{{ snt_json|safe }}`;
+    const data = JSON.parse(safeJSON(raw));
+
+    function safeJSON(raw) {
+      let safe = raw;
+      safe = safe.replace(/\\/g, '\\\\');
+      return safe;
+    }
+
+    const sentences = {};
+    const derivations = {};
+    data.forEach(snt => {
+      sentences[snt.fields.uuid] = snt.fields;
+      derivations[snt.fields.uuid] = JSON.parse(JSON.stringify(snt.fields.derivations));
+
+      snt.fields.categories.forEach(cat => {
+        if (!catCounter[cat]) {
+          catCounter[cat] = 0;
+        }
+
+        catCounter[cat] += 1;
+      });
+    });
+    renderCatCounter();
+
+    Object.keys(derivations).forEach(uuid => {
+      const derivs = derivations[uuid];
+      if (derivs.length === 0) {
+        derivs.push([]);
+        const { words } = sentences[uuid];
+        for (let i = 0; i < words.length; i++) {
+          derivs[0].push({
+            from: i,
+            to: i,
+            word: words[i],
+          });
+        }
+
+        derivs.push([]);
+        const { categories } = sentences[uuid];
+        for (let i = 0; i < words.length; i++) {
+          derivs[1].push({
+            from: i,
+            to: i,
+            category: categories[i] || '',
+          });
+        }
+
+        derivations[uuid] = derivs;
+      }
+    });
+
+    const changes = {
+      project: {},
+      sentences: {},
+      derivations: {},
+    };
+    isSavable();
+
+    let mappedCat = {};
+
+    function isSavable() {
+      const chngs = document.querySelector('textarea[name=changes]');
+      const button = document.querySelector('.save-button');
+      const statuses = document.querySelectorAll('.changes-status');
+
+      if (
+        Object.keys(changes.project).length > 0 ||
+        Object.keys(changes.sentences).length > 0 ||
+        Object.keys(changes.derivations).length > 0
+      ) {
+        chngs.value = JSON.stringify(changes);
+        statuses.forEach(status => status.innerHTML = 'unsaved changes');
+        button.disabled = false;
+      } else {
+        chngs.value = '';
+        statuses.forEach(status => status.innerHTML = '');
+        button.disabled = true;
+      }
+    }
+
+    function updateName(elm) {
+      const name = elm.value;
+      if (project.name !== name) {
+        changes.project.name = name;
+      } else {
+        if (changes.project.name) {
+          delete changes.project.name;
+        }
+      }
+
+      isSavable();
+    }
+
+    function updateStatus(elm) {
+      const status = elm.value;
+      if (project.status !== status) {
+        changes.project.status = status;
+      } else {
+        if (changes.project.status) {
+          delete changes.project.status;
+        }
+      }
+
+      isSavable();
+    }
+
+    function updateRules(elm) {
+      const rules = elm.value;
+      if (project.rules !== rules) {
+        changes.project.rules = rules;
+      } else {
+        if (changes.project.rules) {
+          delete changes.project.rules;
+        }
+      }
+
+      isSavable();
+    }
+
+    function updateCatCounter(oldCat, newCat) {
+      if (oldCat !== newCat) {
+        if (!catCounter[newCat]) {
+          catCounter[newCat] = 0;
+        }
+
+        catCounter[newCat] += 1;
+        catCounter[oldCat] -= 1;
+
+        if (catCounter[oldCat] < 1) {
+          delete catCounter[oldCat];
+        }
+      }
+    }
+
+    function renderCatCounter() {
+      const elm = document.querySelector('.ccg-lexicons');
+      const keys = Object.keys(catCounter);
+      if (keys.filter(k => k === 'null').length > 0 && keys.length < 2) {
+        const html = `
+          <div
+            class="uk-flex uk-flex-center uk-flex-middle"
+            style="min-height: 80px"
+          >
+            <div class="uk-padding-medium">
+              There is no CCG lexicons recorded.
+            </div>
+          </div>
+        `;
+        elm.innerHTML = html;
+      } else {
+        let html = `
+          <div class="uk-flex uk-flex-left uk-flex-wrap">
+        `;
+        keys.forEach(key => {
+          if (key !== 'null') {
+            html += '<div class="lexicon-label">';
+            html += `<div class="category">${key}</div>`;
+            html += `<div class="count">${catCounter[key]}</div>`;
+            html += '</div>';
+          }
+        });
+        html += '</div>';
+        elm.innerHTML = html;
+      }
+    }
+
+    function selectCategory(elm) {
+      const word = elm.parentElement;
+      const input = word.querySelector('input');
+      input.select();
+    }
+
+    function addCategory(elm) {
+      const form = elm;
+      const input = elm.querySelector('input');
+      input.value = trimAll(input.value);
+
+      const drop = elm.parentElement.parentElement.parentElement;
+      const word = drop.parentElement.parentElement;
+      const category = word.querySelector('.category');
+
+      category.innerHTML = input.value;
+
+      const index = parseInt(word.dataset.index, 10);
+      const sentence = word.parentElement.parentElement.parentElement;
+      const { uuid } = sentence.dataset;
+
+      const newCat = input.value === '' ? null : input.value;
+      let oldCat = null;
+      if (changes.sentences[uuid]) {
+        oldCat = changes.sentences[uuid][index] || null;
+      } else {
+        oldCat = sentences[uuid].categories[index];
+      }
+
+      if (typeof oldCat === 'string') {
+        oldCat = trimAll(oldCat);
+      }
+
+      const deriv = derivations[uuid];
+      deriv[1][index].category = newCat;
+
+      updateCatCounter(oldCat, newCat);
+
+      if (sentences[uuid].categories[index] === newCat) {
+        if (changes.sentences[uuid]) {
+          if (changes.sentences[uuid][index] !== undefined) {
+            delete changes.sentences[uuid][index];
+
+            if (Object.keys(changes.sentences[uuid]).length === 0) {
+              delete changes.sentences[uuid];
+            }
+          }
+        }
+      } else {
+        if (!changes.sentences[uuid]) {
+          changes.sentences[uuid] = {};
+        }
+
+        changes.sentences[uuid][index] = newCat;
+      }
+
+      UIkit.drop(drop).hide(0);
+      renderCatCounter();
+      isSavable();
+      return false;
+    }
+
+    function confirmRemoveSentence(uuid) {
+      const modal = document.getElementById('remove-sentence-modal');
+      const sentence = modal.querySelector('.sentence');
+      sentence.innerHTML = sentences[uuid].words.join(' ');
+      const form = modal.querySelector('form');
+      form.action = `/projects/${project.uuid}/sentences/${uuid}/remove/`;
+    }
+
+    function confirmGenCCGDeriv(uuid) {
+      const modal = document.getElementById('gen-ccg-deriv-modal');
+      const sentence = modal.querySelector('.sentence');
+      sentence.innerHTML = sentences[uuid].words.join(' ');
+      const form = modal.querySelector('form');
+      form.action = `/projects/${project.uuid}/sentences/${uuid}/deriv/`;
+    }
+
+    function escHTML(unsafe) {
+      return unsafe
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function renderCCGDeriv(uuid) {
+      const modal = document.getElementById('view-ccg-deriv-modal');
+      const canvas = modal.querySelector('.derivation-canvas');
+
+      const derivs = derivations[uuid];
+
+      const n = derivs.length;
+      const numOfWords = sentences[uuid].words.length;
+      let html = `<table class="ccg-derivation" data-uuid="${uuid}">`;
+
+      const addRowActions = () => {
+        let ret = '<td rowspan="2" class="actions">';
+        ret += '<a class="uk-icon-button cog" uk-icon="icon: cog" ';
+        ret += 'uk-tooltip="Configure derivation on this row." ';
+        ret += `onclick="derivConfRow(this, '${uuid}')" `;
+        ret += 'uk-toggle="#deriv-conf-modal"></a>';
+        ret += '</td>';
+        return ret;
+      };
+
+      for (let i = 0; i < n; i++) {
+        const row = derivs[i];
+        if (i < 1) {
+          html += `<tr class="words" data-row="${i}">`;
+          row.forEach(r => {
+            html += `<td class="word">${escHTML(r.word)}</td>`;
+            html += '<td class="opr"></td>';
+          });
+          html += '</tr>';
+        } else {
+          let rulers = `<tr class="rulers" data-row="${i}">`;
+          let categories = `<tr class="categories" data-row="${i}">`;
+
+          if (row.length === 0) {
+            rulers += '<td class="blank" rowspan="2" ';
+            rulers += `colspan="${numOfWords * 2}"></td>`;
+            rulers += addRowActions();
+            rulers += '</tr>';
+
+            categories += '</tr>';
+            html += rulers + categories;
+
+            continue;
+          }
+
+          let idx = 0;
+          let lastTo = 0;
+          row.sort((l, r) => l.from - r.from);
+
+          row.forEach(col => {
+            const { from, to, category, operator } = col;
+            const diff = from - lastTo;
+
+            if (diff > 1) {
+              let colspan = diff * 2;
+              if (row.length > 1 && idx > 0) {
+                colspan -= 2;
+              }
+
+              rulers += `<td class="ruler" colspan="${colspan}"></td>`;
+              categories += `<td class="category" colspan="${colspan}"></td>`;
+            } else if (from === 1 && i > 1 && idx === 0) {
+              rulers += `<td class="ruler" colspan="2"></td>`;
+              categories += `<td class="category" colspan="2"></td>`;
+            }
+
+            let colspan = 1;
+            if (to - from > 0) {
+              colspan = (to - from + 1) * 2 - 1;
+            }
+
+            const oprCls = ['operator'];
+            if (!operator || operator === '') {
+              if (i > 1) {
+                oprCls.push('blank');
+              }
+            } else {
+              oprCls.push('assigned');
+            }
+
+            rulers += `<td class="ruler" colspan="${colspan}"><hr></td>`;
+            rulers += `<td class="${oprCls.join(' ')}" data-index="${idx}"`;
+            if (i > 1) {
+              rulers += 'onclick="derivEditableOpr(this)"';
+            }
+            rulers += '>' + escHTML(operator || '');
+            rulers += '</td>';
+
+            const catCls = ['category'];
+            if (!category || category === '') {
+              catCls.push('blank');
+            } else {
+              catCls.push('assigned');
+            }
+
+            categories += `<td class="${catCls.join(' ')}" colspan="${colspan}" `;
+            categories += `data-index="${idx}" onclick="derivEditableCat(this)">`;
+            categories += escHTML(category || '');
+            categories += '</td>';
+            categories += '<td class="operator"></td>';
+
+            idx += 1;
+            lastTo = to;
+          });
+
+          if (lastTo + 1 < numOfWords) {
+            const colspan = (numOfWords - (lastTo + 1)) * 2;
+            rulers += `<td class="ruler" colspan="${colspan}"></td>`;
+            categories += `<td class="category" colspan="${colspan}"></td>`;
+          }
+
+          if (i > 1) {
+            rulers += addRowActions();
+          }
+
+          rulers += '</tr>';
+          categories += '</tr>';
+          html += rulers + categories;
+        }
+      }
+
+      html += '<tr class="actions uk-text-center">';
+      html += `<td colspan="${numOfWords * 2}">`;
+      html += '<a class="uk-icon-button" uk-icon="icon: plus" ';
+      html += 'uk-tooltip="Add new row." ';
+      html += `onclick="derivAddRow('${uuid}')"></a>`;
+      html += '</td>';
+      html += '<td></td>';
+      html += '</tr>';
+
+      html += '</table>';
+      canvas.innerHTML = html;
+    }
+
+    function populateCCGCat() {
+      const editor = document.querySelector('.editor-body');
+      const content = editor.querySelectorAll('.sentence');
+
+      mappedCat = {};
+      content.forEach(snt => {
+        let words = snt.querySelectorAll('.word');
+        words = Array.from(words).map(w => w.innerText);
+        let categories = snt.querySelectorAll('.category');
+        categories = Array.from(categories).map(c => c.innerText);
+
+        const n = words.length;
+        for (let i = 0; i < n; i++) {
+          const word = words[i].toLowerCase();
+          const category = categories[i];
+
+          if (category !== '') {
+            if (!mappedCat[word]) {
+              mappedCat[word] = new Set();
+            }
+
+            mappedCat[word].add(category);
+          }
+        }
+      });
+    }
+
+    function autoAssignCCGCat() {
+      populateCCGCat();
+
+      const editor = document.querySelector('.editor-body');
+      const content = editor.querySelectorAll('.sentence');
+
+      let count = 0;
+      content.forEach(snt => {
+        const words = snt.querySelectorAll('.word');
+        const categories = snt.querySelectorAll('.category');
+
+        const n = words.length;
+        for (let i = 0; i < n; i++) {
+          const word = words[i];
+          const wrd = word.innerText.toLowerCase();
+          const category = categories[i].innerText;
+          if (category === '' && mappedCat[wrd] && mappedCat[wrd].size > 0) {
+            const form = word.parentElement.querySelector('form');
+            const input = form.parentElement.querySelector('input');
+            input.value = [...mappedCat[wrd]][0];
+
+            addCategory(form);
+            count += 1;
+          }
+        }
+      });
+
+      const msg = count > 0
+        ? `Successfully assigned ${count} words.`
+        : 'Nothing to assign.';
+      UIkit.notification(msg, { pos: 'bottom-right', timeout: 5000 });
+
+      populateCCGCat();
+    }
+
+    function trimAll(str) {
+      let ret = '';
+      const exclude = ['\n', '\r', ' ', ' ', '\t'];
+      for (let i = 0; i < str.length; i++) {
+        if (exclude.indexOf(str[i]) === -1) {
+          ret += str[i];
+        }
+      }
+
+      return ret;
+    }
+
+    function derivEditableCat(elm) {
+      const { row } = elm.parentElement.dataset;
+
+      const oldCat = elm.innerText;
+      const resetClasses = () => {
+        elm.classList.remove('assigned');
+        elm.classList.remove('blank');
+        elm.classList.remove('editable');
+      };
+
+      elm.contentEditable = true;
+      resetClasses();
+      elm.classList.add('editable');
+      elm.focus();
+
+      function exitEditableScene(opts = { save: true }) {
+        return () => {
+          elm.contentEditable = false;
+          resetClasses();
+
+          if (!opts.save) {
+            elm.innerText = oldCat;
+          } else {
+            elm.innerText = trimAll(elm.innerText);
+          }
+
+          const table = document.querySelector('table.ccg-derivation');
+          const { uuid } = table.dataset;
+          const { index } = elm.dataset;
+
+          if (row === '1') {
+            const section = document.querySelector(`.editor-body .section[data-uuid='${uuid}']`);
+            const form = section.querySelector(`div[data-index='${index}'] form`);
+            const input = form.querySelector('input');
+
+            const idx = parseInt(index, 10);
+            if (derivations[uuid] && derivations[uuid][1] && derivations[uuid][1][idx]) {
+              if (elm.innerText === '') {
+                derivations[uuid][1][idx].category = null;
+              } else {
+                derivations[uuid][1][idx].category = elm.innerText;
+              }
+
+              const mutableDeriv = JSON.stringify(derivations[uuid]);
+              const origDeriv = JSON.stringify(sentences[uuid].derivations);
+              if (mutableDeriv !== origDeriv) {
+                changes.derivations[uuid] = JSON.parse(JSON.stringify(derivations[uuid]));
+              } else {
+                if (changes.derivations[uuid]) {
+                  delete changes.derivations[uuid];
+                }
+              }
+
+              isSavable();
+            }
+
+            input.value = elm.innerText;
+            addCategory(form);
+          } else {
+            derivations[uuid][row][index].category = elm.innerText;
+          }
+
+          if (elm.innerText === '') {
+            elm.classList.add('blank');
+          } else {
+            elm.classList.add('assigned');
+          }
+
+          if (row !== '1') {
+            const mutableDeriv = JSON.stringify(derivations[uuid]);
+            const origDeriv = JSON.stringify(sentences[uuid].derivations);
+            if (mutableDeriv !== origDeriv) {
+              changes.derivations[uuid] = JSON.parse(JSON.stringify(derivations[uuid]));
+            } else {
+              if (changes.derivations[uuid]) {
+                delete changes.derivations[uuid];
+              }
+            }
+
+            isSavable();
+          }
+        };
+      }
+
+      function foutEvent() {
+        exitEditableScene()();
+        elm.removeEventListener('focusout', foutEvent);
+        elm.removeEventListener('keyup', kyupEvent);
+      }
+
+      function kyupEvent(event) {
+        if (event.keyCode === 13 || event.keyCode === 27) {
+          elm.removeEventListener('focusout', foutEvent);
+          elm.removeEventListener('keyup', kyupEvent);
+        }
+
+        if (event.keyCode === 13) {
+          exitEditableScene()();
+        } else if (event.keyCode === 27) {
+          exitEditableScene({ save: false })();
+        }
+      }
+
+      elm.addEventListener('focusout', foutEvent);
+      elm.addEventListener('keyup', kyupEvent);
+    }
+
+    function derivEditableOpr(elm) {
+      const { row } = elm.parentElement.dataset;
+
+      const oldOpr = elm.innerText;
+      const resetClasses = () => {
+        elm.classList.remove('assigned');
+        elm.classList.remove('blank');
+        elm.classList.remove('editable');
+      };
+
+      elm.contentEditable = true;
+      resetClasses();
+      elm.classList.add('editable');
+      elm.focus();
+
+      function exitEditableScene(opts = { save: true }) {
+        return () => {
+          elm.contentEditable = false;
+          resetClasses();
+
+          if (!opts.save) {
+            elm.innerText = oldOpr;
+          } else {
+            elm.innerText = trimAll(elm.innerText);
+          }
+
+          const table = document.querySelector('table.ccg-derivation');
+          const { uuid } = table.dataset;
+          const { index } = elm.dataset;
+
+          derivations[uuid][row][index].operator = elm.innerText;
+
+          if (elm.innerText === '') {
+            elm.classList.add('blank');
+          } else {
+            elm.classList.add('assigned');
+          }
+
+          const mutableDeriv = JSON.stringify(derivations[uuid]);
+          const origDeriv = JSON.stringify(sentences[uuid].derivations);
+          if (mutableDeriv !== origDeriv) {
+            changes.derivations[uuid] = JSON.parse(JSON.stringify(derivations[uuid]));
+          } else {
+            if (changes.derivations[uuid]) {
+              delete changes.derivations[uuid];
+            }
+          }
+
+          isSavable();
+        };
+      }
+
+      function foutEvent() {
+        exitEditableScene()();
+        elm.removeEventListener('focusout', foutEvent);
+        elm.removeEventListener('keyup', kyupEvent);
+      }
+
+      function kyupEvent(event) {
+        if (event.keyCode === 13 || event.keyCode === 27) {
+          elm.removeEventListener('focusout', foutEvent);
+          elm.removeEventListener('keyup', kyupEvent);
+        }
+
+        if (event.keyCode === 13) {
+          exitEditableScene()();
+        } else if (event.keyCode === 27) {
+          exitEditableScene({ save: false })();
+        }
+      }
+
+      elm.addEventListener('focusout', foutEvent);
+      elm.addEventListener('keyup', kyupEvent);
+    }
+
+    function derivAddRow(uuid) {
+      derivations[uuid].push([]);
+      renderCCGDeriv(uuid);
+
+      const mutableDeriv = JSON.stringify(derivations[uuid]);
+      const origDeriv = JSON.stringify(sentences[uuid].derivations);
+      if (mutableDeriv !== origDeriv) {
+        changes.derivations[uuid] = JSON.parse(JSON.stringify(derivations[uuid]));
+      } else {
+        if (changes.derivations[uuid]) {
+          delete changes.derivations[uuid];
+        }
+      }
+
+      isSavable();
+    }
+
+    let derivConfigs = [];
+
+    function derivConfRow(elm, uuid) {
+      const modal = document.querySelector('#deriv-conf-modal');
+      modal.dataset.uuid = uuid;
+      const editor = modal.querySelector('.editor');
+      const { row } = elm.parentElement.parentElement.dataset;
+      modal.dataset.row = row;
+
+      if (derivations[uuid][row].length === 0) {
+        editor.innerHTML = derivBlankConf();
+        return;
+      }
+
+      const idx = parseInt(row, 10);
+      derivConfigs = JSON.parse(JSON.stringify(derivations[uuid][idx]));
+
+      editor.innerHTML = derivRenderConf();
+    }
+
+    function derivBlankConf() {
+      let blank = '<div class="uk-flex uk-flex-middle blank-state">';
+      blank += '<div>';
+      blank += 'There is nothing here.<br>';
+      blank += 'If this row is unneeded, you better ';
+      blank += `<a onclick="derivRemoveRow()">remove this row</a>.`;
+      blank += '</div>';
+      blank += '</div>';
+      return blank;
+    }
+
+    function derivRenderConf() {
+      let html = '';
+      let idx = 0;
+
+      derivConfigs.forEach(deriv => {
+        const { from, to, category, operator } = deriv;
+        html += '<div class="uk-flex uk-flex-between uk-flex-middle config">';
+        html += `<div class="index" style="margin-right: 18px" data-index="${idx}">`;
+        html += idx + 1;
+        html += '</div>';
+        html += '<div class="uk-flex uk-flex-column">';
+        html += '<div class="uk-flex uk-flex-between uk-flex-middle">';
+        html += derivRenderWordSelect(from);
+        html += '<div style="padding: 4px"></div>';
+        html += derivRenderWordSelect(to, from, 'to');
+        html += '<div style="padding: 4px"></div>';
+        html += `<input class="uk-input operator" value="${operator || ''}" `;
+        html += `placeholder="Operator" onchange="derivUpdateConf('operator', this)">`;
+        html += '</div>';
+        html += '<div style="padding: 4px"></div>';
+        html += '<div>';
+        html += `<input class="uk-input category" value="${category || ''}" `;
+        html += `placeholder="Category" onchange="derivUpdateConf('category', this)">`;
+        html += '</div>';
+        html += '</div>';
+        html += '<div class="uk-padding-small">';
+        html += '<button uk-icon="icon: trash; ratio: 1.5" ';
+        html += 'uk-tooltip="Remove this derivation." ';
+        html += `onclick="derivConfRemove(${idx})"></button>`;
+        html += '</div>';
+        html += '</div>';
+
+        idx += 1;
+      });
+
+      return html;
+    }
+
+    function derivRenderWordSelect(idx, from = 0, type = 'from') {
+      const modal = document.querySelector('#deriv-conf-modal');
+      const { uuid } = modal.dataset;
+      const { words } = sentences[uuid];
+      const start = type === 'to' ? from : 0;
+
+      let html = `<select class="uk-select ${type}" onchange="`;
+      if (type === 'from') {
+        html += 'derivUpdateWordSelect(this); ';
+      }
+      html += `derivUpdateConf('${type}', this, 'int')"`;
+      html += '>';
+      let i = start;
+
+      words.slice(start).forEach(w => {
+        html += `<option value="${i}"`;
+        if (i === idx) {
+          html += ' selected';
+        }
+        html += `>${w}</option>`;
+        i += 1;
+      });
+
+      html += '</select>';
+      return html;
+    }
+
+    function derivUpdateWordSelect(elm) {
+      const modal = document.querySelector('#deriv-conf-modal');
+      const { uuid } = modal.dataset;
+      const { words } = sentences[uuid];
+      const select = elm.parentElement.querySelector('select.to');
+      const start = parseInt(elm.value, 10);
+
+      let html = '';
+      let i = start;
+
+      words.slice(start).forEach(w => {
+        html += `<option value=${i}>${w}</option>`;
+        i += 1;
+      });
+
+      select.innerHTML = html;
+    }
+
+    function derivUpdateConf(field, elm, type = 'str') {
+      const row = elm.parentElement.parentElement.parentElement;
+      const { index } = row.querySelector('.index').dataset;
+      const idx = parseInt(index, 10);
+
+      if (type === 'int') {
+        derivConfigs[idx][field] = parseInt(elm.value, 10);
+        if (field === 'from') {
+          derivConfigs[idx].to = parseInt(elm.value, 10);
+        }
+      } else {
+        derivConfigs[idx][field] = elm.value;
+      }
+    }
+
+    function derivAddConfig() {
+      derivConfigs.push({ from: 0, to: 0 });
+
+      const modal = document.querySelector('#deriv-conf-modal');;
+      const editor = modal.querySelector('.editor');
+      editor.innerHTML = derivRenderConf();
+    }
+
+    function derivConfRemove(idx) {
+      derivConfigs = derivConfigs.filter((_, i) => i !== idx);
+
+      const modal = document.querySelector('#deriv-conf-modal');;
+      const editor = modal.querySelector('.editor');
+
+      if (derivConfigs.length === 0) {
+        editor.innerHTML = derivBlankConf();
+      } else {
+        editor.innerHTML = derivRenderConf();
+      }
+    }
+
+    function derivSaveConf() {
+      const modal = document.querySelector('#deriv-conf-modal');
+      const { uuid, row } = modal.dataset;
+      const configs = modal.querySelectorAll('.editor .config');
+
+      let i = 1;
+      const n = sentences[uuid].words.length;
+      const msgs = [];
+
+      let overlap = false;
+      const coord = [];
+      configs.forEach(conf => {
+        let from = conf.querySelector('select.from').value;
+        if (from === '') {
+          return;
+        }
+
+        let to = conf.querySelector('select.to').value;
+        if (to === 'to') {
+          return;
+        }
+
+        from = parseInt(from, 10);
+        to = parseInt(to, 10);
+
+        coord.push([from, to]);
+      });
+
+      coord.sort();
+      for (let j = 1; j < coord.length; j++) {
+        if (coord[j][0] <= coord[j - 1][1]) {
+          msgs.push('Derivation overlapping. Please review.')
+          overlap = true;
+          break;
+        }
+      }
+
+      configs.forEach(conf => {
+        if (overlap) {
+          return;
+        };
+
+        const from = parseInt(conf.querySelector('select.from').value, 10);
+        const to = parseInt(conf.querySelector('select.to').value, 10);
+        const category = trimAll(conf.querySelector('input.category').value);
+        const operator = trimAll(conf.querySelector('input.operator').value);
+
+        let valid = true;
+
+        if (category === '') {
+          msgs.push(`In the #${i} config, category is empty.`);
+          valid = false;
+        }
+
+        if (operator === '') {
+          msgs.push(`In the #${i} config, operator is empty.`);
+          valid = false;
+        }
+
+        if (valid) {
+          const config = { to, from, category, operator };
+          derivConfigs[i - 1] = config;
+        }
+
+        i += 1;
+      });
+
+      if (msgs.length > 0) {
+        msgs.forEach(msg => {
+          UIkit.notification(msg, { pos: 'bottom-right', timeout: 5000 });
+        });
+      } else {
+        const derivStr = JSON.stringify(derivConfigs);
+        if (derivStr === JSON.stringify(derivations[uuid][row])) {
+          UIkit.modal(modal).hide();
+          renderCCGDeriv(uuid);
+          return;
+        }
+
+        derivations[uuid][row] = JSON.parse(derivStr);
+
+        const mutableDeriv = JSON.stringify(derivations[uuid]);
+        const origDeriv = JSON.stringify(sentences[uuid].derivations);
+        if (mutableDeriv !== origDeriv) {
+          changes.derivations[uuid] = JSON.parse(JSON.stringify(derivations[uuid]));
+        } else {
+          if (changes.derivations[uuid]) {
+            delete changes.derivations[uuid];
+          }
+        }
+
+        derivConfigs = [];
+        isSavable();
+
+        UIkit.modal(modal).hide();
+        renderCCGDeriv(uuid);
+      }
+    }
+
+    function derivRemoveRow() {
+      const modal = document.querySelector('#deriv-conf-modal');
+      const { uuid, row } = modal.dataset;
+      const idx = parseInt(row, 10);
+
+      const derivs = derivations[uuid];
+      derivations[uuid] = derivs.slice(0, idx).concat(derivs.slice(idx + 1));
+
+      const mutableDeriv = JSON.stringify(derivations[uuid]);
+      const origDeriv = JSON.stringify(sentences[uuid].derivations);
+      if (mutableDeriv !== origDeriv) {
+        changes.derivations[uuid] = JSON.parse(JSON.stringify(derivations[uuid]));
+      } else {
+        if (changes.derivations[uuid]) {
+          delete changes.derivations[uuid];
+        }
+      }
+
+      isSavable();
+
+      UIkit.modal(modal).hide();
+      renderCCGDeriv(uuid);
+    }
+
+    function derivCloseConfRow() {
+      const box = document.querySelector('.conf-deriv-box');
+      if (box) {
+        box.style.display = 'none';
+      }
+
+      derivConfigs = [];
+    }
+  </script>
+
+  {% include 'footer.html' %}
+{% endblock body %}

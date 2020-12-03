@@ -1,0 +1,45 @@
+{% extends 'default.html' %}
+
+{% block body %}
+  {% include 'navbar.html' %}
+
+  <main>
+    <div class="entire-screen uk-flex uk-flex-center uk-flex-middle">
+      <div class="uk-card uk-card-default uk-card-body" align="center">
+        <h2>Login</h2>
+        <div class="uk-margin-medium"></div>
+        <form method="POST" action="/login/">
+          {% csrf_token %}
+          <div class="uk-margin">
+            <div class="uk-inline">
+              <span class="uk-form-icon" uk-icon="icon: mail"></span>
+              <input
+                name="email"
+                class="uk-input"
+                type="text"
+                placeholder="Email"
+              >
+            </div>
+          </div>
+          <div class="uk-margin">
+            <div class="uk-inline">
+              <span class="uk-form-icon" uk-icon="icon: lock"></span>
+              <input
+                name="password"
+                class="uk-input"
+                type="password"
+                placeholder="Password"
+              >
+            </div>
+          </div>
+          <div class="uk-margin-medium"></div>
+          <button type="submit" class="uk-button uk-button-primary bg-1 hvbg-0">
+            Login to CCGtown
+          </button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  {% include 'footer.html' %}
+{% endblock body %}

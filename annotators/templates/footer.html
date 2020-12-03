@@ -1,0 +1,30 @@
+{% if messages %}
+  {% for message in messages %}
+  <script type="text/javascript">
+    window.setTimeout(() => {
+      UIkit.notification('{{ message }}', {
+        pos: 'bottom-right',
+        timeout: 5000,
+      });
+    }, 500);
+  </script>
+  {% endfor %}
+{% endif %}
+
+<footer>
+  <div class="uk-container uk-padding-small">
+    <div class="uk-flex uk-flex-between uk-flex-middle">
+      <div>
+        CCGtown: A web-based CCG annotation tool.
+      </div>
+      <div>
+        <a
+          href="https://github.com/wisn/ccgtown"
+          class="uk-icon-link"
+          uk-icon="github-alt"
+          target="_blank"
+        ></a>
+      </div>
+    </div>
+  </div>
+</footer>
