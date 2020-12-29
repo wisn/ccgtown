@@ -36,6 +36,7 @@ class Sentence(models.Model):
     words = models.JSONField()
     categories = models.JSONField()
     derivations = models.JSONField()
+    is_correct = models.BooleanField(default=False, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     updated_at = models.DateTimeField(auto_now_add=True)
 

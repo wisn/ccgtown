@@ -1,0 +1,99 @@
+{% extends 'default.html' %}
+{% load static %}
+
+{% block body %}
+  {% include 'navbar.html' %}
+
+  <main class="entire-screen">
+    <div class="hero uk-flex uk-flex-between uk-flex-middle bg-1 fg-4">
+      <div>
+        <h2>CCGtown</h2>
+        <p>
+          Annotating CCG lexicons couldn't be this easy.<br>
+          Input sentence, annotate it, generate the derivation, and viola!
+        </p>
+        <a href="/register/" class="uk-button uk-button-default">
+          Try It Now
+        </a>
+      </div>
+      <div class="gif">
+        <img src="{% static 'annotators/gif/demo.gif' %}">
+      </div>
+    </div>
+
+    <div style="padding: 2em"></div>
+
+    <div class="uk-container">
+      <h2 class="uk-text-center">Features</h2>
+      <div class="uk-margin-small">
+        <div class="uk-grid-small uk-child-width-expand uk-grid-match" uk-grid>
+          <div>
+            <div class="uk-card uk-card-default uk-card-small uk-card-body">
+              <h4 class="uk-card-title">Multi-project</h4>
+              <p>
+                You need to do both wide-range and domain-specific projects
+                at the same time?
+                No problem. We got you covered.
+                Create as many projects as you want.
+              </p>
+            </div>
+          </div>
+          <div>
+            <div class="uk-card uk-card-default uk-card-small uk-card-body">
+              <h4 class="uk-card-title">Auto-assign Annotation</h4>
+              <p>
+                Tired annotating the same words again and again?
+                Let the computer do it for you!
+                CCGtown will annotate the same words that you have
+                annotated before.
+              </p>
+            </div>
+          </div>
+          <div>
+            <div class="uk-card uk-card-default uk-card-small uk-card-body">
+              <h4 class="uk-card-title">Generate CCG Derivation</h4>
+              <p>
+                With the help of NLTK, we will generate the CCG derivation for you.
+                Well, as long as you provide the right annotation. That's it.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="uk-grid-small uk-child-width-expand uk-grid-match" uk-grid>
+          <div>
+            <div class="uk-card uk-card-default uk-card-small uk-card-body">
+              <h4 class="uk-card-title">Editable CCG Derivation</h4>
+              <p>
+                You want to derive the CCG by yourself?
+                Or, does the generated CCG derivation doesn't seems right to you?
+                Feel free to edit the CCG derivation!
+              </p>
+            </div>
+          </div>
+          <div>
+            <div class="uk-card uk-card-default uk-card-small uk-card-body">
+              <h4 class="uk-card-title">Export to JSON</h4>
+              <p>
+                Export your work to JSON and use it elsewhere.
+                Although the current exported format is not that great,
+                we are working on it!
+              </p>
+            </div>
+          </div>
+          <div>
+            <div class="uk-card uk-card-default uk-card-small uk-card-body">
+              <h4 class="uk-card-title">100% Open Source</h4>
+              <p>
+                CCGtown is an open source project.
+                Meaning that you are free to clone and extend this project as you wish.
+                This is a maintained project so the last commit won't be a year ago.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  {% include 'footer.html' %}
+{% endblock body %}
