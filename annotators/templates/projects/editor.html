@@ -59,7 +59,7 @@
                 class="uk-padding-remove"
                 uk-dropdown="delay-hide: 0; mode: click; pos: bottom-left"
               >
-                <ul class="uk-nav uk-dropdown-nav">
+                <ul class="uk-nav uk-dropdown-nav more-action">
                   <li
                     class="uk-nav-header uk-text-center"
                     style="border: 1px solid #efefef"
@@ -67,6 +67,15 @@
                     <strong>
                       More Actions
                     </strong>
+                  </li>
+                  <li>
+                    <a href="/projects/{{ project.uuid }}/export-json/" target="_blank">
+                      <button
+                        class="uk-button uk-button-default uk-button-small uk-width-1-1"
+                      >
+                        Export to JSON
+                      </button>
+                    </a>
                   </li>
                   <li>
                     <button

@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.core import serializers
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.utils import timezone
@@ -13,6 +13,13 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 from .models import Account, Project, Sentence
 import annotators.forms as forms
 import annotators.utils as utils
+
+def home(request):
+    context = {
+        'homepage': True,
+    }
+    return render(request, 'home.html', context)
+
 
 def register(request):
     if request.session.get('user', None) != None:
@@ -468,3 +475,30 @@ def gen_ccg_deriv(request, project_uuid, sentence_uuid):
             messages.add_message(request, messages.ERROR, ' '.join(msgs))
             return HttpResponseRedirect(reverse('editor', args=(project_uuid,)))
 
+
+def export_to_json(request, project_uuid):
+    user = request.session.get('user', None)
+    if not user:
+        msg = 'Please login before exporting a project.'
+        messages.add_message(request, messages.INFO, msg)
+        return HttpResponseRedirect(reverse('login'))
+
+    # pylint: disable=no-member
+    prj = Project.objects.filter(uuid=project_uuid)
+    if len(prj) == 0:
+        msg = 'Project does not exists.'
+        messages.add_message(request, messages.ERROR, msg)
+        return HttpResponseRedirect(reverse('projects'))
+
+    prj = prj[0]
+    snt = Sentence.objects.filter(project=prj)
+
+    data = []
+    for i in range(len(snt)):
+        data.append({
+            'words': snt[i].words,
+            'categories': snt[i].categories,
+            'derivations': snt[i].derivations,
+        })
+
+    return JsonResponse(data, safe=False)

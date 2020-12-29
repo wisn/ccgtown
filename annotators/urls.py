@@ -3,6 +3,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path('', views.home, name='home'),
     path('register/', views.register, name='register'),
     path('login/', views.login, name='login'),
     path('logout/', views.logout, name='logout'),
@@ -21,4 +22,5 @@ urlpatterns = [
         'projects/<uuid:project_uuid>/sentences/<uuid:sentence_uuid>/deriv/',
         views.gen_ccg_deriv,
     ),
+    path('projects/<uuid:project_uuid>/export-json/', views.export_to_json),
 ]

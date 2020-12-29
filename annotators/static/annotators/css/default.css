@@ -75,6 +75,10 @@ body {
   cursor: default;
 }
 
+.topnav {
+  border-bottom: 1px solid #3e045e;
+}
+
 .topnav a:hover {
   color: #ffffff;
 }
@@ -367,4 +371,36 @@ main {
 
 #deriv-conf-modal .config input {
   text-align: center;
+}
+
+.hero {
+  margin-top: -2em;
+  min-height: 320px;
+  padding: .5em 4em;
+}
+
+.hero h2, .hero a {
+  color: #ffffff;
+}
+
+.hero a:hover {
+  background-color: #ffffff;
+  color: #222222;
+}
+
+.hero .gif {
+  margin-bottom: -3em;
+  height: 288px;
+  overflow: hidden;
+  width: 640px;
+}
+
+.hero .gif img {
+  border: 1px solid #3e045e;
+  height: 320px;
+  width: 644px;
+}
+
+.more-action > li > a {
+  padding: 0;
 }

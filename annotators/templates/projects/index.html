@@ -20,13 +20,13 @@
                     uk-toggle="target: #add-project-modal"
                   ></a>
                 </li>
-                <li>
+                <!-- <li>
                   <a
                     href="javascript:;"
                     uk-icon="icon: cloud-upload; ratio: 1.25"
                     uk-tooltip="Import CCGbank."
                   ></a>
-                </li>
+                </li> -->
               </ul>
             </div>
           </div>
@@ -125,6 +125,12 @@
                             href="/projects/{{ project.uuid }}/"
                             uk-icon="icon: file-edit"
                             uk-tooltip="Edit this project."
+                          ></a>
+                          <a
+                            href="/projects/{{ project.uuid }}/export-json/"
+                            target="_blank"
+                            uk-icon="icon: download"
+                            uk-tooltip="Export to JSON"
                           ></a>
                           <a
                             uk-icon="icon: trash"
